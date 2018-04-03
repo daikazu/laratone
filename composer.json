@@ -16,7 +16,8 @@
   },
   "autoload": {
     "psr-4": {
-      "Daikazu\\Laratone\\": "src/"
+      "Daikazu\\Laratone\\": "src/",
+      "Daikazu\\Laratone\\Colorbooks": "src/seeds/"
     }
   },
   "extra": {

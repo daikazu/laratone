@@ -2,8 +2,9 @@
 
 namespace Daikazu\Laratone;
 
+use Illuminate\Support\ServiceProvider;
 
-class LaratoneServiceProvider
+class LaratoneServiceProvider extends ServiceProvider
 {
 
 
@@ -12,10 +13,10 @@ class LaratoneServiceProvider
 
         $app = $this->app;
 
-
         $this->publishes([__DIR__ . '/config/laratone.php' => config_path('daikazu/laratone.php')]);
         $this->loadMigrationsFrom(__DIR__ . '/databases/migrations');
         $this->loadRoutesFrom(__DIR__ . '/routes.php');
+
 
 
     }
@@ -24,6 +25,8 @@ class LaratoneServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__ . '/config/laratone.php', 'tjm.laratone');
+
+
     }
 
 
