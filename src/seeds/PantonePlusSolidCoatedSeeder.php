@@ -14,7 +14,7 @@ class PantonePlusSolidCoatedSeeder extends Seeder
 
     public function __construct()
     {
-        $this->colors = json_decode(__DIR__ . '/colorbooks/PantonePlusSolidCoated.json');
+        $this->colors = json_decode(file_get_contents(__DIR__ . '/colorbooks/PantonePlusSolidCoated.json'));
     }
 
 
@@ -25,6 +25,7 @@ class PantonePlusSolidCoatedSeeder extends Seeder
      */
     public function run()
     {
+
 
         $colorbook = new Colorbook([
             'name' => $this->colors['name'],
