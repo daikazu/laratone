@@ -6,7 +6,7 @@ use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\Colorbook;
 use Illuminate\Database\Seeder;
 
-class PantonePlusSolidCoatedSeeder extends Seeder
+class PantonePlusSolidCoated336NewColorsSeeder extends Seeder
 {
 
 
@@ -14,7 +14,7 @@ class PantonePlusSolidCoatedSeeder extends Seeder
 
     public function __construct()
     {
-        $this->colors = json_decode(file_get_contents(__DIR__ . '/colorbooks/PantonePlusSolidCoated.json'));
+        $this->colors = json_decode(file_get_contents(__DIR__ . '/colorbooks/PatonePlusSolidCoated336NewColors.json'));
     }
 
 
