@@ -28,7 +28,7 @@ class PantonePlusSolidCoated336NewColorsSeeder extends Seeder
 
         $colorbook = new Colorbook();
         $colorbook->name = $this->colors->name;
-        $colorbook = $colorbook->save();
+        $colorbook->save();
 
 
         array_map(function ($value) use ($colorbook) {
