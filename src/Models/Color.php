@@ -18,12 +18,13 @@ class Color extends Model
 
     public function colorbook()
     {
-        return $this->belongsTo(Color::class);
+        return $this->belongsTo(Colorbook::class);
     }
 
     public function getLabAttribute()
     {
-        $array = explode(',', $this->lab);
+        $array = explode(',', $this->attributes['lab']);
+
         return [
             'l' => floatval($array[0]),
             'a' => floatval($array[1]),
@@ -33,7 +34,7 @@ class Color extends Model
 
     public function getRgbAttribute()
     {
-        $array = explode(',', $this->rgb);
+        $array = explode(',', $this->attributes['rgb']);
         return [
             'r' => intval($array[0]),
             'g' => intval($array[1]),
@@ -43,7 +44,7 @@ class Color extends Model
 
     public function getCmykAttribute()
     {
-        $array = explode(',', $this->cmyk);
+        $array = explode(',', $this->attributes['cmyk']);
         return [
             'c' => intval($array[0]),
             'm' => intval($array[1]),
