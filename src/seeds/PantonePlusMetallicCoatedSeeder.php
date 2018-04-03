@@ -32,9 +32,10 @@ class PantonePlusMetallicCoatedSeeder extends Seeder
         $colorbook = $colorbook->save();
 
 
-        array_map(function ($value) {
+        array_map(function ($value) use ($colorbook) {
 
             $color = new Color();
+            $color->colorbook_id = $colorbook->id;
             $color->name = $value->name;
             $color->lab = $value->lab;
             $color->hex = $value->hex;
