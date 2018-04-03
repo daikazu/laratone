@@ -24,7 +24,7 @@ class LaratoneServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/config/laratone.php', 'tjm.laratone');
+        $this->mergeConfigFrom(__DIR__ . '/config/laratone.php', 'laratone');
 
 
     }
