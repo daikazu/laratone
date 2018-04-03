@@ -16,6 +16,10 @@ class Color extends Model
         $this->table = config('laratone.table_prefix') . $this->table;
     }
 
+    public function colorbook()
+    {
+        return $this->belongsTo(Color::class);
+    }
 
     public function getLabAttribute()
     {

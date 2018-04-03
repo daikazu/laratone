@@ -17,6 +17,11 @@ class Colorbook extends Model
         $this->table = config('laratone.table_prefix') . $this->table;
     }
 
+    public function colors()
+    {
+        return $this->hasMany(Color::class);
+    }
+
 
 
 

@@ -14,8 +14,16 @@ class CreateColorsTable extends Migration
             $table->string('name');
             $table->string('lab');
             $table->string('hex');
+            $table->string('rgb');
             $table->string('cmyk');
+
+            $table->foreign('colorbook_id')
+                ->references('id')
+                ->on(config('laratone.table_prefix') . 'colors')
+                ->onDelete('cascade');
+
             $table->timestamps();
+
         });
 
     }
