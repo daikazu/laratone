@@ -30,7 +30,7 @@ class PantonePlusMetallicCoatedSeeder extends Seeder
         $colorbook = new Colorbook([
             'name' => $this->colors->name,
         ]);
-        $colorbook = $colorbook->save();
+        $colorbook->save();
 
 
         array_map(function ($value) {
@@ -44,7 +44,7 @@ class PantonePlusMetallicCoatedSeeder extends Seeder
             ]);
             $color->save();
 
-        }, $this->colors['data']);
+        }, $this->colors->data);
 
 
     }

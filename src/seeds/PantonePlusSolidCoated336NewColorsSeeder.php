@@ -44,7 +44,7 @@ class PantonePlusSolidCoated336NewColorsSeeder extends Seeder
             ]);
             $color->save();
 
-        }, $this->colors['data']);
+        }, $this->colors->data);
 
 
     }
