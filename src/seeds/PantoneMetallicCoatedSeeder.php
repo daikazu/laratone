@@ -26,26 +26,24 @@ class PantoneMetallicCoatedSeeder extends Seeder
     public function run()
     {
 
-
         $colorbook = new Colorbook([
             'name' => $this->colors->name,
         ]);
-        $colorbook = $colorbook->save();
+        $colorbook->save();
 
-
-        array_map(function ($value) {
+        array_map(function ($value) use ($colorbook) {
 
             $color = new Color([
-                'name' => $value->name,
-                'lab'  => $value->lab,
-                'hex'  => $value->hex,
-                'rgb'  => $value->rgb,
-                'cmyk' => $value->cmyk,
+                'colorbook_id' => $colorbook->id,
+                'name'         => $value->name,
+                'lab'          => $value->lab,
+                'hex'          => $value->hex,
+                'rgb'          => $value->rgb,
+                'cmyk'         => $value->cmyk,
             ]);
             $color->save();
 
-        }, $this->colors['data']);
-
+        }, $this->colors->data);
 
     }
 }
