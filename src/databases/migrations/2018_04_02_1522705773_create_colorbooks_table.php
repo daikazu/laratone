@@ -7,9 +7,17 @@ use Illuminate\Database\Migrations\Migration;
 class CreateColorbooksTable extends Migration
 {
 
+    private $tablename;
+
+    public function __construct()
+    {
+        $this->tablename = config('laratone.table_prefix') . 'colorbooks';
+    }
+
+
     public function up()
     {
-        Schema::Create(config('laratone.table_prefix') . 'colorbooks', function (Blueprint $table) {
+        Schema::Create($this->tablename, function (Blueprint $table) {
             $table->increments('id');
             $table->string('name');
             $table->timestamps();
@@ -19,7 +27,7 @@ class CreateColorbooksTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists(config('laratone.table_prefix') . 'colorbooks');
+        Schema::dropIfExists($this->tablename);
     }
 
 }
