@@ -10,6 +10,10 @@ class Color extends Model
 
     protected $fillable = ['name', 'lab', 'hex', 'rgb', 'cmyk'];
 
+    protected $hidden = ['colorbook_id'];
+
+    protected $with = ['colorbook'];
+
 
     public function __construct()
     {
