@@ -8,6 +8,7 @@
       "email": "daikazu@gmail.com"
     }
   ],
+  "license": "MIT",
   "require": {
     "php": ">=5.5.5",
     "illuminate/support": "5.5.*|5.6.*"
