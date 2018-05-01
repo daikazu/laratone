@@ -1,4 +1,5 @@
 <?php
+
 namespace Daikazu\Laratone\Models;
 
 use Illuminate\Database\Eloquent\Model;
@@ -7,9 +8,8 @@ class Colorbook extends Model
 {
 
     protected $table = 'colorbooks';
-
-
-    protected $fillable =['name'];
+    protected $fillable = ['name'];
+    protected $hidden = ['created_at', 'updated_at'];
 
 
     public function __construct()
@@ -21,13 +21,6 @@ class Colorbook extends Model
     {
         return $this->hasMany(Color::class);
     }
-
-
-
-
-
-
-
 
 
 }

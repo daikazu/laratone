@@ -1,6 +1,8 @@
 # laratone
 Laravel Color Library Package
 
+This is a simple package to manage and seed various color libraries I find my self using all time.
+
 ## Install
 
 ```bash
@@ -42,4 +44,6 @@ Four Color Book seeders have been made available for you;
 - `PantonePlusSolidCoated336NewColorsSeeder`
 - `PantoneMetallicCoatedSeeder`
 - `PantonePlusMetallicCoatedSeeder`
+- `GuangShunThreadColorsSeeder`
+- `HCTwillColorsSeeder`
 

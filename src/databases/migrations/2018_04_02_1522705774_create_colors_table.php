@@ -23,10 +23,10 @@ class CreateColorsTable extends Migration
             $table->increments('id');
             $table->integer('colorbook_id')->unsigned();
             $table->string('name');
-            $table->string('lab');
-            $table->string('hex');
-            $table->string('rgb');
-            $table->string('cmyk');
+            $table->string('lab')->nullable();
+            $table->string('hex')->nullable();
+            $table->string('rgb')->nullable();
+            $table->string('cmyk')->nullable();
 
             $table->foreign('colorbook_id')
                 ->references('id')
