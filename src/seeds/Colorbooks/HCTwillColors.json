@@ -3,291 +3,291 @@
   "data": [
     {
       "name": "BF800",
-      "hex": "#0e191b"
+      "hex": "0e191b"
     },
     {
       "name": "BF801",
-      "hex": "#e8eaf3"
+      "hex": "e8eaf3"
     },
     {
       "name": "BF802",
-      "hex": "#e8e3ba"
+      "hex": "e8e3ba"
     },
     {
       "name": "BF803",
-      "hex": "#f1e785"
+      "hex": "f1e785"
     },
     {
       "name": "BF804",
-      "hex": "#f4e133"
+      "hex": "f4e133"
     },
     {
       "name": "BF805",
-      "hex": "#f5c52e"
+      "hex": "f5c52e"
     },
     {
       "name": "BF806",
-      "hex": "#f19d29"
+      "hex": "f19d29"
     },
     {
       "name": "BF807",
-      "hex": "#e7c78f"
+      "hex": "e7c78f"
     },
     {
       "name": "BF808",
-      "hex": "#e2bc63"
+      "hex": "e2bc63"
     },
     {
       "name": "BF809",
-      "hex": "#c9ab5f"
+      "hex": "c9ab5f"
     },
     {
       "name": "BF810",
-      "hex": "#91774d"
+      "hex": "91774d"
     },
     {
       "name": "BF811",
-      "hex": "#fc96ac"
+      "hex": "fc96ac"
     },
     {
       "name": "BF812",
-      "hex": "#f15028"
+      "hex": "f15028"
     },
     {
       "name": "BF813",
-      "hex": "#f02e27"
+      "hex": "f02e27"
     },
     {
       "name": "BF814",
-      "hex": "#bdac94"
+      "hex": "bdac94"
     },
     {
       "name": "BF815",
-      "hex": "#8f8660"
+      "hex": "8f8660"
     },
     {
       "name": "BF816",
-      "hex": "#fc572a"
+      "hex": "fc572a"
     },
     {
       "name": "BF817",
-      "hex": "#c01e28"
+      "hex": "c01e28"
     },
     {
       "name": "BF818",
-      "hex": "#b21b1c"
+      "hex": "b21b1c"
     },
     {
       "name": "BF819",
-      "hex": "#7d141b"
+      "hex": "7d141b"
     },
     {
       "name": "BF820",
-      "hex": "#53121e"
+      "hex": "53121e"
     },
     {
       "name": "BF821",
-      "hex": "#1e1518"
+      "hex": "1e1518"
     },
     {
       "name": "BF822",
-      "hex": "#76b5c7"
+      "hex": "76b5c7"
     },
     {
       "name": "BF823",
-      "hex": "#50a7cf"
+      "hex": "50a7cf"
     },
     {
       "name": "BF824",
-      "hex": "#78bff5"
+      "hex": "78bff5"
     },
     {
       "name": "BF825",
-      "hex": "#5296f2"
+      "hex": "5296f2"
     },
     {
       "name": "BF826",
-      "hex": "#2563d1"
+      "hex": "2563d1"
     },
     {
       "name": "BF827",
-      "hex": "#1f5bb4"
+      "hex": "1f5bb4"
     },
     {
       "name": "BF828",
-      "hex": "#a5caea"
+      "hex": "a5caea"
     },
     {
       "name": "BF829",
-      "hex": "#5e97cb"
+      "hex": "5e97cb"
     },
     {
       "name": "BF830",
-      "hex": "#607dda"
+      "hex": "607dda"
     },
     {
       "name": "BF831",
-      "hex": "#1c72bd"
+      "hex": "1c72bd"
     },
     {
       "name": "BF832",
-      "hex": "#69d4df"
+      "hex": "69d4df"
     },
     {
       "name": "BF833",
-      "hex": "#185962"
+      "hex": "185962"
     },
     {
       "name": "BF834",
-      "hex": "#68af3b"
+      "hex": "68af3b"
     },
     {
       "name": "BF835",
-      "hex": "#63bf36"
+      "hex": "63bf36"
     },
     {
       "name": "BF836",
-      "hex": "#187b38"
+      "hex": "187b38"
     },
     {
       "name": "BF837",
-      "hex": "#114032"
+      "hex": "114032"
     },
     {
       "name": "BF838",
-      "hex": "#193a21"
+      "hex": "193a21"
     },
     {
       "name": "BF839",
-      "hex": "#0e171d"
+      "hex": "0e171d"
     },
     {
       "name": "BF840",
-      "hex": "#1e2822"
+      "hex": "1e2822"
     },
     {
       "name": "BF841",
-      "hex": "#273126"
+      "hex": "273126"
     },
     {
       "name": "BF842",
-      "hex": "#16211c"
+      "hex": "16211c"
     },
     {
       "name": "BF843",
-      "hex": "#3a201b"
+      "hex": "3a201b"
     },
     {
       "name": "BF844",
-      "hex": "#251b1a"
+      "hex": "251b1a"
     },
     {
       "name": "BF845",
-      "hex": "#181416"
+      "hex": "181416"
     },
     {
       "name": "BF846",
-      "hex": "#c1c4b9"
+      "hex": "c1c4b9"
     },
     {
       "name": "BF847",
-      "hex": "#a8a8a8"
+      "hex": "a8a8a8"
     },
     {
       "name": "BF848",
-      "hex": "#bcb6c4"
+      "hex": "bcb6c4"
     },
     {
       "name": "BF849",
-      "hex": "#a5b5aa"
+      "hex": "a5b5aa"
     },
     {
       "name": "BF850",
-      "hex": "#29373c"
+      "hex": "29373c"
     },
     {
       "name": "BF851",
-      "hex": "#605f56"
+      "hex": "605f56"
     },
     {
       "name": "BF852",
-      "hex": "#1b236d"
+      "hex": "1b236d"
     },
     {
       "name": "BF853",
-      "hex": "#171f7b"
+      "hex": "171f7b"
     },
     {
       "name": "BF854",
-      "hex": "#192160"
+      "hex": "192160"
     },
     {
       "name": "BF855",
-      "hex": "#121633"
+      "hex": "121633"
     },
     {
       "name": "BF856",
-      "hex": "#0e0e19"
+      "hex": "0e0e19"
     },
     {
       "name": "BF857",
-      "hex": "#0b080e"
+      "hex": "0b080e"
     },
     {
       "name": "BF858",
-      "hex": "#28185b"
+      "hex": "28185b"
     },
     {
       "name": "BF859",
-      "hex": "#161515"
+      "hex": "161515"
     },
     {
       "name": "BF860",
-      "hex": "#090607"
+      "hex": "090607"
     },
     {
       "name": "BF870",
-      "hex": "#272527"
+      "hex": "272527"
     },
     {
       "name": "BF871",
-      "hex": "#89c232"
+      "hex": "89c232"
     },
     {
       "name": "BF972",
-      "hex": "#c89a5d"
+      "hex": "c89a5d"
     },
     {
       "name": "BF873",
-      "hex": "#d41625"
+      "hex": "d41625"
     },
     {
       "name": "BF874",
-      "hex": "#56938a"
+      "hex": "56938a"
     },
     {
       "name": "BF875",
-      "hex": "#624bc6"
+      "hex": "624bc6"
     },
     {
       "name": "BF876",
-      "hex": "#101323"
+      "hex": "101323"
     },
     {
       "name": "BF977",
-      "hex": "#0b090a"
+      "hex": "0b090a"
     },
     {
       "name": "BF878",
-      "hex": "#89675e"
+      "hex": "89675e"
     },
     {
       "name": "BF879",
-      "hex": "#95dde7"
+      "hex": "95dde7"
     },
     {
       "name": "BF880",
-      "hex": "#492d20"
+      "hex": "492d20"
     }
   ]
 }
