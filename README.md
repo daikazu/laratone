@@ -6,7 +6,7 @@ This is a simple package to manage and seed various color libraries I find my se
 ## Install
 
 ```bash
-composer require daikazu\laratone
+composer require daikazu/laratone
 ```
 
 ### publish config

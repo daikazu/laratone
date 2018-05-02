@@ -1,7 +1,7 @@
 {
   "name": "daikazu/laratone",
   "description": "Color Library for Laravel",
-  "version": "0.0.3",
+  "version": "v0.0.2",
   "authors": [
     {
       "name": "Mike Wall",
@@ -22,6 +22,7 @@
       "Daikazu\\Laratone\\Colorbooks\\": "src/seeds/"
     }
   },
+  "minimum-stability": "RC",
   "extra": {
     "laravel": {
       "providers": [
