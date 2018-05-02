@@ -22,36 +22,44 @@ class Color extends Model
         return $this->belongsTo(Colorbook::class);
     }
 
+
     public function getLabAttribute()
     {
-        $array = explode(',', $this->attributes['lab']);
+        if ($this->attributes['lab']) {
 
-        return [
-            'l' => floatval($array[0]),
-            'a' => floatval($array[1]),
-            'b' => floatval($array[2]),
-        ];
+            $array = explode(',', $this->attributes['lab']);
+
+            return [
+                'l' => floatval($array[0]),
+                'a' => floatval($array[1]),
+                'b' => floatval($array[2]),
+            ];
+        }
     }
 
     public function getRgbAttribute()
     {
-        $array = explode(',', $this->attributes['rgb']);
-        return [
-            'r' => intval($array[0]),
-            'g' => intval($array[1]),
-            'b' => intval($array[2]),
-        ];
+        if ($this->attributes['rgb']) {
+            $array = explode(',', $this->attributes['rgb']);
+            return [
+                'r' => intval($array[0]),
+                'g' => intval($array[1]),
+                'b' => intval($array[2]),
+            ];
+        }
     }
 
     public function getCmykAttribute()
     {
-        $array = explode(',', $this->attributes['cmyk']);
-        return [
-            'c' => intval($array[0]),
-            'm' => intval($array[1]),
-            'y' => intval($array[2]),
-            'k' => intval($array[3]),
-        ];
+        if ($this->attributes['cmyk']) {
+            $array = explode(',', $this->attributes['cmyk']);
+            return [
+                'c' => intval($array[0]),
+                'm' => intval($array[1]),
+                'y' => intval($array[2]),
+                'k' => intval($array[3]),
+            ];
+        }
     }
 
 
