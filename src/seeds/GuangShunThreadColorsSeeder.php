@@ -34,10 +34,7 @@ class GuangShunThreadColorsSeeder extends Seeder
             $color = new Color();
             $color->colorbook_id = $colorbook->id;
             $color->name = $value->name;
-            $color->lab = $value->lab;
             $color->hex = $value->hex;
-            $color->rgb = $value->rgb;
-            $color->cmyk = $value->cmyk;
             $color->save();
 
         }, $this->colors->data);
