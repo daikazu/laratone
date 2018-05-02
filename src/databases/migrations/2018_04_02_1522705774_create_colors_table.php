@@ -12,6 +12,7 @@ class CreateColorsTable extends Migration
     public function __construct()
     {
         $this->tablename = config('daikazu.laratone.table_prefix') . 'colors';
+        $this->colorbookTablename = config('daikazu.laratone.table_prefix') . 'colorbooks';
 
     }
 
@@ -30,7 +31,7 @@ class CreateColorsTable extends Migration
 
             $table->foreign('colorbook_id')
                 ->references('id')
-                ->on($this->tablename)
+                ->on($this->colorbookTablename)
                 ->onDelete('cascade');
 
             $table->timestamps();

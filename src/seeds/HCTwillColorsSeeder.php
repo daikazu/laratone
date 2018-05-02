@@ -14,7 +14,7 @@ class HCTwillColorsSeeder extends Seeder
 
     public function __construct()
     {
-        $this->colors = json_decode(file_get_contents(__DIR__ . '/colorbooks/HCTwillColors.json.json'));
+        $this->colors = json_decode(file_get_contents(__DIR__ . '/colorbooks/HCTwillColors.json'));
     }
 
 
