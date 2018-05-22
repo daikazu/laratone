@@ -22,7 +22,6 @@
       "Daikazu\\Laratone\\Colorbooks\\": "src/seeds/"
     }
   },
-  "minimum-stability": "rc",
   "extra": {
     "laravel": {
       "providers": [
