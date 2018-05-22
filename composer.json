@@ -27,6 +27,6 @@
         "Daikazu\\Laratone\\LaratoneServiceProvider"
       ]
     }
-  }
+  },
   "minimum-stability": "stable",
 }
