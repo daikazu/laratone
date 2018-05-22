@@ -1,8 +1,7 @@
 {
   "name": "daikazu/laratone",
   "description": "Color Library for Laravel",
-  "version": "0.0.3",
-  "authors": [
+    "authors": [
     {
       "name": "Mike Wall",
       "email": "daikazu@gmail.com"
@@ -29,4 +28,5 @@
       ]
     }
   }
+  "minimum-stability": "stable",
 }
