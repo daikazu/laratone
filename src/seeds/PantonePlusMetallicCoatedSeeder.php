@@ -8,15 +8,12 @@ use Illuminate\Database\Seeder;
 
 class PantonePlusMetallicCoatedSeeder extends Seeder
 {
-
-
     private $colors;
 
     public function __construct()
     {
-        $this->colors = json_decode(file_get_contents(__DIR__ . '/colorbooks/PantonePlusMetallicCoated.json'));
+        $this->colors = json_decode(file_get_contents(__DIR__.'/colorbooks/PantonePlusMetallicCoated.json'));
     }
-
 
     /**
      * Run the database seeds.
@@ -25,15 +22,11 @@ class PantonePlusMetallicCoatedSeeder extends Seeder
      */
     public function run()
     {
-
-
         $colorbook = new Colorbook();
         $colorbook->name = $this->colors->name;
         $colorbook->save();
 
-
         array_map(function ($value) use ($colorbook) {
-
             $color = new Color();
             $color->colorbook_id = $colorbook->id;
             $color->name = $value->name;
@@ -42,9 +35,6 @@ class PantonePlusMetallicCoatedSeeder extends Seeder
             $color->rgb = $value->rgb;
             $color->cmyk = $value->cmyk;
             $color->save();
-
         }, $this->colors->data);
-
-
     }
 }

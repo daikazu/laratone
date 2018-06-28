@@ -11,10 +11,9 @@ class Color extends Model
     protected $fillable = ['name', 'lab', 'hex', 'rgb', 'cmyk'];
     protected $hidden = ['colorbook_id', 'created_at', 'updated_at'];
 
-
     public function __construct()
     {
-        $this->table = config('daikazu.laratone.table_prefix') . $this->table;
+        $this->table = config('daikazu.laratone.table_prefix').$this->table;
     }
 
     public function colorbook()
@@ -22,11 +21,9 @@ class Color extends Model
         return $this->belongsTo(Colorbook::class);
     }
 
-
     public function getLabAttribute()
     {
         if ($this->attributes['lab']) {
-
             $array = explode(',', $this->attributes['lab']);
 
             return [
@@ -41,6 +38,7 @@ class Color extends Model
     {
         if ($this->attributes['rgb']) {
             $array = explode(',', $this->attributes['rgb']);
+
             return [
                 'r' => intval($array[0]),
                 'g' => intval($array[1]),
@@ -53,6 +51,7 @@ class Color extends Model
     {
         if ($this->attributes['cmyk']) {
             $array = explode(',', $this->attributes['cmyk']);
+
             return [
                 'c' => intval($array[0]),
                 'm' => intval($array[1]),
@@ -61,6 +60,4 @@ class Color extends Model
             ];
         }
     }
-
-
 }

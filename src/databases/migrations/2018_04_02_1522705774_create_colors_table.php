@@ -1,25 +1,21 @@
 <?php
 
-use Illuminate\Support\Facades\Schema;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
 
 class CreateColorsTable extends Migration
 {
-
     private $tablename;
 
     public function __construct()
     {
-        $this->tablename = config('daikazu.laratone.table_prefix') . 'colors';
-        $this->colorbookTablename = config('daikazu.laratone.table_prefix') . 'colorbooks';
-
+        $this->tablename = config('daikazu.laratone.table_prefix').'colors';
+        $this->colorbookTablename = config('daikazu.laratone.table_prefix').'colorbooks';
     }
-
 
     public function up()
     {
-
         Schema::Create($this->tablename, function (Blueprint $table) {
             $table->increments('id');
             $table->integer('colorbook_id')->unsigned();
@@ -35,14 +31,11 @@ class CreateColorsTable extends Migration
                 ->onDelete('cascade');
 
             $table->timestamps();
-
         });
-
     }
 
     public function down()
     {
         Schema::dropIfExists($this->tablename);
     }
-
 }

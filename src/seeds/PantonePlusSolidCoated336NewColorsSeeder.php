@@ -8,15 +8,12 @@ use Illuminate\Database\Seeder;
 
 class PantonePlusSolidCoated336NewColorsSeeder extends Seeder
 {
-
-
     private $colors;
 
     public function __construct()
     {
-        $this->colors = json_decode(file_get_contents(__DIR__ . '/colorbooks/PatonePlusSolidCoated336NewColors.json'));
+        $this->colors = json_decode(file_get_contents(__DIR__.'/colorbooks/PatonePlusSolidCoated336NewColors.json'));
     }
-
 
     /**
      * Run the database seeds.
@@ -25,14 +22,11 @@ class PantonePlusSolidCoated336NewColorsSeeder extends Seeder
      */
     public function run()
     {
-
         $colorbook = new Colorbook();
         $colorbook->name = $this->colors->name;
         $colorbook->save();
 
-
         array_map(function ($value) use ($colorbook) {
-
             $color = new Color();
             $color->colorbook_id = $colorbook->id;
             $color->name = $value->name;
@@ -41,9 +35,6 @@ class PantonePlusSolidCoated336NewColorsSeeder extends Seeder
             $color->rgb = $value->rgb;
             $color->cmyk = $value->cmyk;
             $color->save();
-
         }, $this->colors->data);
-
-
     }
 }
