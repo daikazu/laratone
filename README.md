@@ -47,3 +47,8 @@ Four Color Book seeders have been made available for you;
 - `GuangShunThreadColorsSeeder`
 - `HCTwillColorsSeeder`
 
+
+### TODO
+- Need to write tests
+
+
