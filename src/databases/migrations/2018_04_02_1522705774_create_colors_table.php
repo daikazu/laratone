@@ -18,14 +18,14 @@ class CreateColorsTable extends Migration
     {
         Schema::Create($this->tablename, function (Blueprint $table) {
             $table->increments('id');
-            $table->integer('colorbook_id')->unsigned();
+            $table->integer('color_book_id')->unsigned();
             $table->string('name');
             $table->string('lab')->nullable();
             $table->string('hex')->nullable();
             $table->string('rgb')->nullable();
             $table->string('cmyk')->nullable();
 
-            $table->foreign('colorbook_id')
+            $table->foreign('color_book_id')
                 ->references('id')
                 ->on($this->colorbookTablename)
                 ->onDelete('cascade');

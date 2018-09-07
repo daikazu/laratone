@@ -1,6 +1,6 @@
 {
   "name": "daikazu/laratone",
-  "description": "Color Library for Laravel",
+  "description": "Color Libraries for Laravel",
     "authors": [
     {
       "name": "Mike Wall",
@@ -9,8 +9,8 @@
   ],
   "license": "MIT",
   "require": {
-    "php": ">=5.5.5",
-    "illuminate/support": "5.5.*|5.6.*|5.7.*"
+    "php": ">=7.0",
+    "illuminate/support": "5.6.*|5.7.*"
   },
   "require-dev": {
     "phpunit/phpunit": "7.0.*"
@@ -18,7 +18,7 @@
   "autoload": {
     "psr-4": {
       "Daikazu\\Laratone\\": "src/",
-      "Daikazu\\Laratone\\Colorbooks\\": "src/seeds/"
+      "Daikazu\\Laratone\\ColorBooks\\": "src/seeds/"
     }
   },
   "extra": {

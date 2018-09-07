@@ -9,16 +9,16 @@ class Color extends Model
     protected $table = 'colors';
 
     protected $fillable = ['name', 'lab', 'hex', 'rgb', 'cmyk'];
-    protected $hidden = ['colorbook_id', 'created_at', 'updated_at'];
+    protected $hidden = ['color_book_id', 'created_at', 'updated_at'];
 
     public function __construct()
     {
-        $this->table = config('daikazu.laratone.table_prefix').$this->table;
+        $this->table = config('daikazu.laratone.table_prefix') . $this->table;
     }
 
-    public function colorbook()
+    public function color_book()
     {
-        return $this->belongsTo(Colorbook::class);
+        return $this->belongsTo(Colorbook::class, 'color_book_id', 'id');
     }
 
     public function getLabAttribute()

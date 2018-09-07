@@ -1,6 +1,6 @@
 <?php
 
-namespace Daikazu\Laratone\Colorbooks;
+namespace Daikazu\Laratone\ColorBooks;
 
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\Colorbook;
@@ -22,13 +22,13 @@ class GuangShunThreadColorsSeeder extends Seeder
      */
     public function run()
     {
-        $colorbook = new Colorbook();
-        $colorbook->name = $this->colors->name;
-        $colorbook->save();
+        $colorBook = new ColorBook();
+        $colorBook->name = $this->colors->name;
+        $colorBook->save();
 
-        array_map(function ($value) use ($colorbook) {
+        array_map(function ($value) use ($colorBook) {
             $color = new Color();
-            $color->colorbook_id = $colorbook->id;
+            $color->color_book_id = $colorBook->id;
             $color->name = $value->name;
             $color->hex = $value->hex;
             $color->save();

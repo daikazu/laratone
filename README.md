@@ -35,7 +35,7 @@ php artisan migrate
 ### Seed with default Color Books
 
 ```
-php artisan db:seed --class="Daikazu\Laratone\Colorbooks\PantonePlusSolidCoatedSeeder"
+php artisan db:seed --class="Daikazu\Laratone\ColorBooks\PantonePlusSolidCoatedSeeder"
 ```
 
 Four Color Book seeders have been made available for you;
