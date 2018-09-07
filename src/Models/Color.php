@@ -13,7 +13,7 @@ class Color extends Model
 
     public function __construct()
     {
-        $this->table = config('daikazu.laratone.table_prefix') . $this->table;
+        $this->table = config('daikazu.laratone.table_prefix').$this->table;
     }
 
     public function color_book()
