@@ -11,7 +11,7 @@ class CreateColorsTable extends Migration
     public function __construct()
     {
         $this->tablename = config('daikazu.laratone.table_prefix').'colors';
-        $this->colorbookTablename = config('daikazu.laratone.table_prefix').'colorbooks';
+        $this->colorbookTablename = config('daikazu.laratone.table_prefix').'color_books';
     }
 
     public function up()
