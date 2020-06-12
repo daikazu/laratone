@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Color extends Model
 {
+
     protected $table = 'colors';
 
     protected $fillable = ['name', 'lab', 'hex', 'rgb', 'cmyk'];
@@ -13,12 +14,12 @@ class Color extends Model
 
     public function __construct()
     {
-        $this->table = config('daikazu.laratone.table_prefix').$this->table;
+        $this->table = config('laratone.table_prefix') . $this->table;
     }
 
     public function color_book()
     {
-        return $this->belongsTo(Colorbook::class, 'color_book_id', 'id');
+        return $this->belongsTo(ColorBook::class, 'color_book_id', 'id');
     }
 
     public function getLabAttribute()
@@ -60,4 +61,6 @@ class Color extends Model
             ];
         }
     }
+
+
 }

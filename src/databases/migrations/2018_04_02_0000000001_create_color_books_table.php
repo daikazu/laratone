@@ -6,24 +6,25 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateColorBooksTable extends Migration
 {
-    private $tablename;
+    private $tableName;
 
     public function __construct()
     {
-        $this->tablename = config('daikazu.laratone.table_prefix').'color_books';
+        $this->tableName = config('laratone.table_prefix').'color_books';
     }
 
     public function up()
     {
-        Schema::Create($this->tablename, function (Blueprint $table) {
-            $table->increments('id');
+        Schema::Create($this->tableName, function (Blueprint $table) {
+            $table->bigIncrements('id');
             $table->string('name');
+            $table->string('slug')->unique();
             $table->timestamps();
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists($this->tablename);
+        Schema::dropIfExists($this->tableName);
     }
 }
