@@ -11,14 +11,13 @@ class CreateColorsTable extends Migration
 
     public function __construct()
     {
-        $this->tableName = config('laratone.table_prefix') . 'colors';
-        $this->colorBookTableName = config('laratone.table_prefix') . 'color_books';
+        $this->tableName = config('laratone.table_prefix').'colors';
+        $this->colorBookTableName = config('laratone.table_prefix').'color_books';
     }
 
     public function up()
     {
         Schema::Create($this->tableName, function (Blueprint $table) {
-
             $table->bigIncrements('id');
             $table->bigInteger('color_book_id')->unsigned();
             $table->string('name');

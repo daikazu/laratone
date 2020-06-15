@@ -10,14 +10,11 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
 
     public function boot()
     {
-
         $this->registerCommands();
         $this->registerPublishables();
 
-
         $this->loadMigrationsFrom(__DIR__.'/databases/migrations');
         $this->loadRoutesFrom(__DIR__.'/routes.php');
-
     }
 
     public function register()
@@ -27,27 +24,21 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             'laratone'
         );
 
-
         $this->app->bind('laratone', function () {
             return new Laratone();
         });
     }
 
-
     protected function registerPublishables()
     {
-
         $this->publishesToGroups([
             self::CONFIG_PATH => config_path('laratone.php'),
         ], ['laratone', 'laratone-config']);
-
-
     }
-
 
     protected function registerCommands()
     {
-        if (!$this->app->runningInConsole()) {
+        if (! $this->app->runningInConsole()) {
             return;
         }
 
@@ -69,6 +60,4 @@ class ServiceProvider extends \Illuminate\Support\ServiceProvider
             $this->publishes($paths, $group);
         }
     }
-
-
 }

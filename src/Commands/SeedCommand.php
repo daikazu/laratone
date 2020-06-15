@@ -22,24 +22,19 @@ class SeedCommand extends Command
                 $data = $this->getJSONFileData($this->argument('name'), true);
                 $this->seed($data);
             } else {
-
                 $allColorBooks = scandir(__DIR__.'/../../colorbooks/');
 
                 array_map(function ($v) {
-
-                    if (!in_array($v, ['.', '..'])) {
+                    if (! in_array($v, ['.', '..'])) {
                         $this->seed($this->getJSONFileData(str_replace('.json', '', $v), true));
                     }
-
                 }, $allColorBooks);
             }
-
         } else {
             $data = $this->getJSONFileData($file);
         }
 
         $this->info("<options=bold,reverse;fg=green> All Files Seeded </> 🤙\n");
-
     }
 
     private function getJSONFileData($file, $byName = false)
@@ -50,7 +45,6 @@ class SeedCommand extends Command
             }
 
             return json_decode(file_get_contents($file));
-
         } catch (\Exception $e) {
             $this->error('Color Book Not Found!');
             exit();
@@ -59,12 +53,12 @@ class SeedCommand extends Command
 
     private function seed($jsonColorBook)
     {
-
         $slug = Str::slug($jsonColorBook->name);
 
         // check if slug exists
         if (ColorBook::where('slug', $slug)->exists()) {
             $this->error('Color Book slug '.$slug.' already exists!');
+
             return;
         }
 
@@ -83,6 +77,4 @@ class SeedCommand extends Command
 
         $this->info('- '.$jsonColorBook->name.' seeded.');
     }
-
-
 }

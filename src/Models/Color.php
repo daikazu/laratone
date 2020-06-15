@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class Color extends Model
 {
-
     protected $table = 'colors';
 
     protected $fillable = ['name', 'lab', 'hex', 'rgb', 'cmyk'];
@@ -14,7 +13,7 @@ class Color extends Model
 
     public function __construct()
     {
-        $this->table = config('laratone.table_prefix') . $this->table;
+        $this->table = config('laratone.table_prefix').$this->table;
     }
 
     public function color_book()
@@ -61,6 +60,4 @@ class Color extends Model
             ];
         }
     }
-
-
 }

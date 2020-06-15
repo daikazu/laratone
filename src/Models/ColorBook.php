@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 
 class ColorBook extends Model
 {
-
     protected $table = 'color_books';
     protected $fillable = ['name', 'slug'];
     protected $hidden = ['created_at', 'updated_at'];
@@ -21,11 +20,8 @@ class ColorBook extends Model
         return $this->hasMany(Color::class, 'color_book_id');
     }
 
-
     public function scopeSlug($query, $slug)
     {
         return $query->where('slug', $slug);
     }
-
-
 }
