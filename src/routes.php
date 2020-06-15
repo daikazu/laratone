@@ -8,5 +8,4 @@ Route::prefix('api/laratone')
     ->group(function () {
         Route::get('colorbooks', '\Daikazu\Laratone\Http\Controllers\LaratoneController@colorbooks')->name('laratone.colorbooks');
         Route::get('colorbook/{slug}', '\Daikazu\Laratone\Http\Controllers\LaratoneController@colorbook')->name('laratone.colorbook');
-
     });
