@@ -6,19 +6,20 @@ use Illuminate\Support\Facades\Schema;
 
 class CreateColorsTable extends Migration
 {
-    private $tablename;
+    private $tableName;
+    private $colorBookTableName;
 
     public function __construct()
     {
-        $this->tablename = config('daikazu.laratone.table_prefix').'colors';
-        $this->colorbookTablename = config('daikazu.laratone.table_prefix').'color_books';
+        $this->tableName = config('laratone.table_prefix').'colors';
+        $this->colorBookTableName = config('laratone.table_prefix').'color_books';
     }
 
     public function up()
     {
-        Schema::Create($this->tablename, function (Blueprint $table) {
-            $table->increments('id');
-            $table->integer('color_book_id')->unsigned();
+        Schema::Create($this->tableName, function (Blueprint $table) {
+            $table->bigIncrements('id');
+            $table->bigInteger('color_book_id')->unsigned();
             $table->string('name');
             $table->string('lab')->nullable();
             $table->string('hex')->nullable();
@@ -27,7 +28,7 @@ class CreateColorsTable extends Migration
 
             $table->foreign('color_book_id')
                 ->references('id')
-                ->on($this->colorbookTablename)
+                ->on($this->colorBookTableName)
                 ->onDelete('cascade');
 
             $table->timestamps();
@@ -36,6 +37,6 @@ class CreateColorsTable extends Migration
 
     public function down()
     {
-        Schema::dropIfExists($this->tablename);
+        Schema::dropIfExists($this->tableName);
     }
 }
