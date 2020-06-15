@@ -13,7 +13,7 @@ class ColorBook extends Model
 
     public function __construct()
     {
-        $this->table = config('laratone.table_prefix') . $this->table;
+        $this->table = config('laratone.table_prefix').$this->table;
     }
 
     public function colors()

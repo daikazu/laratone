@@ -5,7 +5,6 @@ namespace Daikazu\Laratone\Commands;
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\File;
 use Illuminate\Support\Str;
 
 class SeedCommand extends Command
@@ -21,22 +20,19 @@ class SeedCommand extends Command
         if ($file === null) {
             if ($this->argument('name')) {
                 $data = $this->getJSONFileData($this->argument('name'), true);
+                $this->seed($data);
+            } else {
+
+                $allColorBooks = scandir(__DIR__.'/../../colorbooks/');
+
+                array_map(function ($v) {
+
+                    if (!in_array($v, ['.', '..'])) {
+                        $this->seed($this->getJSONFileData(str_replace('.json', '', $v), true));
+                    }
+
+                }, $allColorBooks);
             }
-
-            $allColorBooks = scandir(__DIR__ . '/../../colorbooks/');
-
-            array_map(function ($v) {
-
-                if (!in_array($v, ['.', '..'])) {
-
-
-                    $this->seed($this->getJSONFileData(str_replace('.json', '', $v), true));
-
-                    $this->info('- ' . $v . ' seeded.');
-                }
-
-            }, $allColorBooks);
-
 
         } else {
             $data = $this->getJSONFileData($file);
@@ -44,21 +40,20 @@ class SeedCommand extends Command
 
         $this->info("<options=bold,reverse;fg=green> All Files Seeded </> 🤙\n");
 
-
     }
 
     private function getJSONFileData($file, $byName = false)
     {
         try {
             if ($byName) {
-
-                return json_decode(file_get_contents(__DIR__ . '/../../colorbooks/' . $file . '.json'));
+                return json_decode(file_get_contents(__DIR__.'/../../colorbooks/'.$file.'.json'));
             }
 
             return json_decode(file_get_contents($file));
 
         } catch (\Exception $e) {
             $this->error('Color Book Not Found!');
+            exit();
         }
     }
 
@@ -69,10 +64,9 @@ class SeedCommand extends Command
 
         // check if slug exists
         if (ColorBook::where('slug', $slug)->exists()) {
-            $this->error('Color Book slug ' . $slug . ' already exists!');
+            $this->error('Color Book slug '.$slug.' already exists!');
             return;
         }
-
 
         $colorBook = new ColorBook();
         $colorBook->name = $jsonColorBook->name;
@@ -87,6 +81,7 @@ class SeedCommand extends Command
             $color->save();
         }, $jsonColorBook->data);
 
+        $this->info('- '.$jsonColorBook->name.' seeded.');
     }
 
 

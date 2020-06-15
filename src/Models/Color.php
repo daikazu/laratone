@@ -10,7 +10,7 @@ class Color extends Model
     protected $table = 'colors';
 
     protected $fillable = ['name', 'lab', 'hex', 'rgb', 'cmyk'];
-    protected $hidden = ['color_book_id', 'created_at', 'updated_at'];
+    protected $hidden = ['id', 'color_book_id', 'created_at', 'updated_at'];
 
     public function __construct()
     {

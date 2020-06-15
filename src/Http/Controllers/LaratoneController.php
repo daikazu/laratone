@@ -13,20 +13,41 @@ class LaratoneController extends Controller
     {
 
         $limit = Request::input('limit', null);
-        $sortOrder = Request::input('sort', 'desc');
+        $sortOrder = Request::input('sort', 'asc');
+        $randomize = (bool) Request::input('random', null);
 
-        return ColorBook::with(['colors' => function ($query) use ($limit, $sortOrder) {
+        return ColorBook::with([
+            'colors' => function ($query) use ($limit, $sortOrder, $randomize) {
 
-            ($sortOrder === 'desc')
-                ? $query->orderBy('name', 'desc')
-                : $query->orderBy('name', 'asc');
+                if ($randomize) {
+                    $query->inRandomOrder();
+                } else {
 
-            $query->limit($limit);
-        }])
+                    ($sortOrder === 'asc')
+                        ? $query->orderBy('name', 'asc')
+                        : $query->orderBy('name', 'desc');
+                }
+
+                $query->limit($limit);
+            }
+        ])
             ->slug($slug)
             ->first()
             ->only('name', 'slug', 'colors');
     }
 
+    public function colorbooks()
+    {
+
+        $sortOrder = Request::input('sort', 'asc');
+
+        $query = ColorBook::select('name', 'slug');
+
+        ($sortOrder === 'asc')
+            ? $query->orderBy('name', 'asc')
+            : $query->orderBy('name', 'desc');
+
+        return $query->get();
+    }
 
 }

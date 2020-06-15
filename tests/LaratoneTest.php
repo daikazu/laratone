@@ -24,4 +24,5 @@ class LaratoneTest extends TestCase
     {
         $this->assertEquals(1, 1);
     }
+
 }
