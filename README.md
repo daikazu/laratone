@@ -1,7 +1,7 @@
 # Laratone
 
 [![GitHub Workflow Status](https://github.com/daikazu/laratone/workflows/Run%20tests/badge.svg)](https://github.com/daikazu/laratone/actions)
-[![styleci](https://styleci.io/repos/CHANGEME/shield)](https://styleci.io/repos/127805076)
+[![styleci](https://styleci.io/repos/127805076/shield)](https://styleci.io/repos/127805076)
 
 [![Packagist](https://img.shields.io/packagist/v/daikazu/laratone.svg)](https://packagist.org/packages/daikazu/laratone)
 [![Packagist](https://poser.pugx.org/daikazu/laratone/d/total.svg)](https://packagist.org/packages/daikazu/laratone)
@@ -98,9 +98,9 @@ Example Color Book format
     }...
 ```
 
-##API
+## API
 
-###Color Books
+### Color Books
 
 
 
@@ -111,7 +111,7 @@ http://example.test/api/laratone/colorbooks
 |---------------|:--------:|------------------------------------------|:-------:|
 | sort          |   false  | Sort Color Book By Name `asc` or `desc`  |   asc   |
 
-####Example:
+#### Example:
 ```json
 [
     {
@@ -125,7 +125,7 @@ http://example.test/api/laratone/colorbooks
 ]
 ```
 
-###Colors
+### Colors
 
 Return colors from ColorBook based on ColorBook slug ie.`pantone-plus-solid-coated`
 
@@ -139,7 +139,7 @@ http://example.test/api/laratone/colorbook/pantone-plus-solid-coated
 | limit         |   false  | Limit number of colors returned                      |    -    |   |
 | random        |   false  | Set to `true` to randomize colors (overrides `sort`) |  false  |   |
 
-####Example:
+#### Example:
 ```json
 {
     "name": "Pantone Plus Solid Coated",
@@ -163,7 +163,7 @@ http://example.test/api/laratone/colorbook/pantone-plus-solid-coated
 ```
 
 
-##TODO
+## TODO
 
 - write tests (If someone would like to help with this please send a PR)
 
