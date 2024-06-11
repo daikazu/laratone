@@ -1,53 +1,81 @@
 {
-  "name": "daikazu/laratone",
-  "description": "Color Libraries and API for Laravel",
-  "license": "MIT",
-  "keywords": [
-    "laravel",
-    "swatches",
-    "laratone"
-  ],
-  "type": "library",
-  "authors": [
-    {
-      "name": "Mike Wall",
-      "email": "daikazu@gmail.com"
-    }
-  ],
-  "require": {
-    "php": ">=7.2",
-    "illuminate/support": ">=6.0"
-  },
-  "require-dev": {
-    "orchestra/testbench": ">=4.0",
-    "phpunit/phpunit": ">=8.4"
-  },
-  "autoload": {
-    "psr-4": {
-      "Daikazu\\Laratone\\": "src"
-    }
-  },
-  "autoload-dev": {
-    "psr-4": {
-      "Daikazu\\Laratone\\Tests\\": "tests"
-    }
-  },
-  "scripts": {
-    "phpunit": "phpunit"
-  },
-  "extra": {
-    "laravel": {
-      "providers": [
-        "Daikazu\\Laratone\\ServiceProvider"
-      ],
-      "aliases": {
-        "Laratone": "Daikazu\\Laratone\\Laratone"
-      }
-    }
-  },
-  "config": {
-    "preferred-install": "dist",
-    "sort-packages": true,
-    "optimize-autoloader": true
-  }
+    "name": "daikazu/laratone",
+    "description": "Simple API for managing color libraries in you Laravel application.",
+    "keywords": [
+        "laravel",
+        "swatches",
+        "laratone"
+    ],
+    "homepage": "https://github.com/daikazu/laratone",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mike Wall",
+            "email": "daikazu@gmail.com",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "spatie/laravel-package-tools": "^1.16",
+        "illuminate/contracts": "^10.0||^11.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.14",
+        "nunomaduro/collision": "^8.1.1||^7.10.0",
+        "orchestra/testbench": "^9.0.0||^8.22.0",
+        "pestphp/pest": "^2.34",
+        "pestphp/pest-plugin-arch": "^2.7",
+        "pestphp/pest-plugin-laravel": "^2.3",
+        "tightenco/duster": "^3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Daikazu\\Laratone\\": "src/",
+            "Daikazu\\Laratone\\Database\\Factories\\": "database/factories/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Daikazu\\Laratone\\Tests\\": "tests/",
+            "Workbench\\App\\": "workbench/app/"
+        }
+    },
+    "scripts": {
+        "post-autoload-dump": "@composer run prepare",
+        "clear": "@php vendor/bin/testbench package:purge-laratone --ansi",
+        "prepare": "@php vendor/bin/testbench package:discover --ansi",
+        "build": [
+            "@composer run prepare",
+            "@php vendor/bin/testbench workbench:build --ansi"
+        ],
+        "start": [
+            "Composer\\Config::disableProcessTimeout",
+            "@composer run build",
+            "@php vendor/bin/testbench serve"
+        ],
+        "analyse": "vendor/bin/phpstan analyse",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage",
+        "format": "vendor/bin/pint"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Daikazu\\Laratone\\LaratoneServiceProvider"
+            ],
+            "aliases": {
+                "Laratone": "Daikazu\\Laratone\\Facades\\Laratone"
+            }
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
 }

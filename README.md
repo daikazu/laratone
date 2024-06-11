@@ -1,13 +1,9 @@
 # Laratone
 
-[![GitHub Workflow Status](https://github.com/daikazu/laratone/workflows/Run%20tests/badge.svg)](https://github.com/daikazu/laratone/actions)
-[![styleci](https://styleci.io/repos/127805076/shield)](https://styleci.io/repos/127805076)
-
-[![Packagist](https://img.shields.io/packagist/v/daikazu/laratone.svg)](https://packagist.org/packages/daikazu/laratone)
-[![Packagist](https://poser.pugx.org/daikazu/laratone/d/total.svg)](https://packagist.org/packages/daikazu/laratone)
-[![Packagist](https://img.shields.io/packagist/l/daikazu/laratone.svg)](https://packagist.org/packages/daikazu/laratone)
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
 
 Laravel Color Library Package
 
@@ -16,17 +12,26 @@ Laratone provides a few routes to allow simple access via url.
 
 ## Installation
 
-Install via composer
+You can install the package via composer:
+
 ```bash
 composer require daikazu/laratone
 ```
 
-### Publish config
+You can publish and run the migrations with:
 
 ```bash
-php artisan vendor:publish --tag=laratone-config
-
+php artisan vendor:publish --tag="laratone-migrations"
+php artisan migrate
 ```
+
+You can publish the config file with:
+
+```bash
+php artisan vendor:publish --tag="laratone-config"
+```
+
+This is the contents of the published config file:
 
 You can change the table prefix name in the config to what ever you like.
 ```php
@@ -38,11 +43,6 @@ return [
 
 ```
 
-### Migrate Database table
-
-```bash
-php artisan migrate
-```
 
 ## Usage
 
@@ -167,22 +167,29 @@ http://example.test/api/laratone/colorbook/pantone-plus-solid-coated
 
 - write tests (If someone would like to help with this please send a PR)
 
+## Testing
 
-## Security
+```bash
+composer test
+```
 
-If you discover any security related issues, please email
-instead of using the issue tracker.
+## Changelog
 
-## Contributors ✨
+Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
+
+## Contributing
+
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+## Security Vulnerabilities
+
+Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
+
+## Credits
 
 - [Mike Wall](https://github.com/daikazu)
-- [All contributors](https://github.com/daikazu/laratone/graphs/contributors)
-
-
-This project follows the [all-contributors](https://github.com/all-contributors/all-contributors) specification. Contributions of any kind welcome!
+- [All Contributors](../../contributors)
 
 ## License
 
-Copyright © Mike Wall
-
-Laratone is open-sourced software licensed under the [MIT license](LICENSE.md).
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
