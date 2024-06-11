@@ -2,29 +2,24 @@
 
 namespace Daikazu\Laratone\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Daikazu\Laratone\Models\ColorBook;
+use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Request;
+use Illuminate\Validation\Rule;
 
 class LaratoneController extends Controller
 {
     public function colorbook($slug)
     {
-        $limit = Request::input('limit', null);
-        $sortOrder = Request::input('sort', 'asc');
-        $randomize = (bool) Request::input('random', null);
+        $validated = Request::validate([
+            'limit'  => 'nullable|integer',
+            'sort'   => ['nullable', Rule::in(['asc', 'desc'])],
+            'random' => 'nullable|boolean',
+        ]);
 
         return ColorBook::with([
-            'colors' => function ($query) use ($limit, $sortOrder, $randomize) {
-                if ($randomize) {
-                    $query->inRandomOrder();
-                } else {
-                    ($sortOrder === 'asc')
-                        ? $query->orderBy('name', 'asc')
-                        : $query->orderBy('name', 'desc');
-                }
-
-                $query->limit($limit);
+            'colors' => function ($query) use ($validated) {
+                $this->applyQueryOptions($query, $validated);
             },
         ])
             ->slug($slug)
@@ -34,14 +29,29 @@ class LaratoneController extends Controller
 
     public function colorbooks()
     {
-        $sortOrder = Request::input('sort', 'asc');
+        $validated = Request::validate([
+            'sort' => ['nullable', Rule::in(['asc', 'desc'])],
+        ]);
 
         $query = ColorBook::select('name', 'slug');
 
-        ($sortOrder === 'asc')
-            ? $query->orderBy('name', 'asc')
-            : $query->orderBy('name', 'desc');
+        $this->applyQueryOptions($query, $validated);
 
         return $query->get();
+    }
+
+    private function applyQueryOptions($query, $options)
+    {
+        if (isset($options['random']) && $options['random']) {
+            $query->inRandomOrder();
+        }
+
+        if (isset($options['sort'])) {
+            $query->orderBy('name', $options['sort']);
+        }
+
+        if (isset($options['limit'])) {
+            $query->limit($options['limit']);
+        }
     }
 }

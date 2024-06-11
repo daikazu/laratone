@@ -4,21 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateColorBooksTable extends Migration
+return new class extends Migration
 {
-    private $tableName;
+    private string $tableName;
 
     public function __construct()
     {
-        $this->tableName = config('laratone.table_prefix').'color_books';
+        $this->tableName = config('laratone.table_prefix') . 'color_books';
     }
 
     public function up()
     {
-        Schema::Create($this->tableName, function (Blueprint $table) {
-            $table->bigIncrements('id');
+        Schema::create('laratone_table', function (Blueprint $table) {
+            $table->id();
             $table->string('name');
-            $table->string('slug')->unique();
+            $table->string('slug')->unique()->index();
             $table->timestamps();
         });
     }
@@ -27,4 +27,4 @@ class CreateColorBooksTable extends Migration
     {
         Schema::dropIfExists($this->tableName);
     }
-}
+};

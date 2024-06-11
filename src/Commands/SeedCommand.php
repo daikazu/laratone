@@ -4,6 +4,7 @@ namespace Daikazu\Laratone\Commands;
 
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
+use Exception;
 use Illuminate\Console\Command;
 use Illuminate\Support\Str;
 
@@ -13,7 +14,7 @@ class SeedCommand extends Command
 
     protected $description = 'Seed a Laratone Color Books';
 
-    public function handle()
+    public function handle(): int
     {
         $file = $this->option('file') ? base_path($this->option('file')) : null;
 
@@ -22,7 +23,7 @@ class SeedCommand extends Command
                 $data = $this->getJSONFileData($this->argument('name'), true);
                 $this->seed($data);
             } else {
-                $allColorBooks = scandir(__DIR__.'/../../colorbooks/');
+                $allColorBooks = scandir(__DIR__ . '/../../colorbooks/');
 
                 array_map(function ($v) {
                     if (! in_array($v, ['.', '..'])) {
@@ -35,19 +36,21 @@ class SeedCommand extends Command
         }
 
         $this->info("<options=bold,reverse;fg=green> All Files Seeded </> 🤙\n");
+
+        return self::SUCCESS;
     }
 
     private function getJSONFileData($file, $byName = false)
     {
         try {
             if ($byName) {
-                return json_decode(file_get_contents(__DIR__.'/../../colorbooks/'.$file.'.json'));
+                return json_decode(file_get_contents(__DIR__ . '/../../colorbooks/' . $file . '.json'));
             }
 
             return json_decode(file_get_contents($file));
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->error('Color Book Not Found!');
-            exit();
+            throw $e;
         }
     }
 
@@ -57,24 +60,37 @@ class SeedCommand extends Command
 
         // check if slug exists
         if (ColorBook::where('slug', $slug)->exists()) {
-            $this->error('Color Book slug '.$slug.' already exists!');
+            $this->error('Color Book slug ' . $slug . ' already exists!');
 
             return;
         }
 
-        $colorBook = new ColorBook();
-        $colorBook->name = $jsonColorBook->name;
-        $colorBook->slug = Str::slug($jsonColorBook->name);
-        $colorBook->save();
+        $colorBook = $this->createColorBook(name: $jsonColorBook->name);
 
         array_map(function ($value) use ($colorBook) {
-            $color = new Color();
-            $color->color_book_id = $colorBook->id;
-            $color->name = $value->name;
-            $color->hex = $value->hex;
-            $color->save();
+            $this->createColor(colorBookId: $colorBook->id, value: $value);
         }, $jsonColorBook->data);
 
-        $this->info('- '.$jsonColorBook->name.' seeded.');
+        $this->info('- ' . $jsonColorBook->name . ' seeded.');
+    }
+
+    private function createColorBook(string $name): ColorBook
+    {
+        return ColorBook::create([
+            'name' => $name,
+            'slug' => Str::slug($name),
+        ]);
+    }
+
+    private function createColor(int $colorBookId, $value): void
+    {
+        Color::create([
+            'color_book_id' => $colorBookId,
+            'name'          => $value->name,
+            'hex'           => $value?->hex,
+            'lab'           => $value?->lab,
+            'rgb'           => $value?->rgb,
+            'cmyk'          => $value?->cmyk,
+        ]);
     }
 }

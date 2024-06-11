@@ -6,7 +6,7 @@ use Daikazu\Laratone\Models\ColorBook;
 
 class Laratone
 {
-    public function colorbooks()
+    public function colorBooks(): \Illuminate\Database\Eloquent\Collection|array
     {
         return ColorBook::with('colors')->get();
     }
