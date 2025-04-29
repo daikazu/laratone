@@ -13,9 +13,9 @@ return new class extends Migration
         $this->tableName = config('laratone.table_prefix') . 'color_books';
     }
 
-    public function up()
+    public function up(): void
     {
-        Schema::create('laratone_table', function (Blueprint $table) {
+        Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique()->index();
@@ -23,7 +23,7 @@ return new class extends Migration
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists($this->tableName);
     }
