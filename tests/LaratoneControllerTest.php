@@ -27,9 +27,9 @@ beforeEach(function (): void {
 test('can get color book by slug', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     $color = Color::create([
-        'name' => 'Test Color',
-        'hex' => '#FF0000',
-        'color_book_id' => $colorBook->id
+        'name'          => 'Test Color',
+        'hex'           => '#FF0000',
+        'color_book_id' => $colorBook->id,
     ]);
 
     $controller = new LaratoneController;
@@ -118,9 +118,9 @@ test('can get color books with sort parameter', function (): void {
 test('caches color book responses', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     $color = Color::create([
-        'name' => 'Test Color',
-        'hex' => '#FF0000',
-        'color_book_id' => $colorBook->id
+        'name'          => 'Test Color',
+        'hex'           => '#FF0000',
+        'color_book_id' => $colorBook->id,
     ]);
 
     $controller = new LaratoneController;
