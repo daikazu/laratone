@@ -1,3 +1,7 @@
+<p align="center">
+<img src="laratone.png" alt="Laratone Logo">
+</p>
+
 # Laratone
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
@@ -5,10 +9,21 @@
 [![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/fix-php-code-style-issues.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3A"Fix+PHP+code+style+issues"+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
 
-Laravel Color Library Package
+Laratone is a comprehensive Laravel package for managing color libraries and swatches in your applications. It provides an easy-to-use API for storing, retrieving, and managing color data, with built-in support for various color formats (HEX, RGB, CMYK, LAB) and popular color libraries.
 
-This is a simple package to manage and seed various color libraries I find my self using all time. You can use the defaults or simple add your own.
-Laratone provides a few routes to allow simple access via url.
+## Features
+
+- 🎨 Multiple built-in color libraries (Pantone, GuangShun Thread, HC Twill)
+- 🔄 Automatic color data caching for improved performance
+- 📦 Easy color book management and seeding
+- 🔍 Flexible API for color searching and filtering
+- 🛠️ Simple integration with Laravel applications
+- 📝 Support for custom color books and formats
+
+## Requirements
+
+- PHP 8.3 or higher
+- Laravel 11.x or greater
 
 ## Installation
 
@@ -18,164 +33,150 @@ You can install the package via composer:
 composer require daikazu/laratone
 ```
 
-You can publish and run the migrations with:
+### Publish Configuration and Migrations
+
+Publish the configuration file:
+
+```bash
+php artisan vendor:publish --tag="laratone-config"
+```
+
+Publish and run the migrations:
 
 ```bash
 php artisan vendor:publish --tag="laratone-migrations"
 php artisan migrate
 ```
 
-You can publish the config file with:
+## Configuration
 
-```bash
-php artisan vendor:publish --tag="laratone-config"
-```
+The published config file (`config/laratone.php`) contains the following options:
 
-This is the contents of the published config file:
-
-You can change the table prefix name in the config to what ever you like.
 ```php
-<?php
-
 return [
-    'table_prefix' => 'laratone_', //default
+    // Table prefix for Laratone tables
+    'table_prefix' => 'laratone_',
+    
+    // Cache duration in seconds for color books and colors
+    'cache_time' => 3600,
 ];
-
 ```
-
 
 ## Usage
 
+### Seeding Color Books
 
-### Seed with default Color Books
+Laratone comes with several pre-built color libraries:
 
-Use the Laratone artisan command to seed Color Books to your database.
-
-
-The following Color Books have been made available for you;
-- `PantonePlusSolidCoated`
-- `PantonePlusSolidCoated336NewColors`
-- `PantoneMetallicCoated`
-- `PantonePlusMetallicCoated`
+- `ColorBookPlusSolidCoated`
+- `ColorBookPlusSolidCoated336NewColors`
+- `ColorBookMetallicCoated`
+- `ColorBookPlusMetallicCoated`
 - `GuangShunThreadColors`
 - `HCTwillColors`
 
-### Seed all Color Books in Package
+#### Seed All Color Books
 ```bash
 php artisan laratone:seed
 ```
 
-### Seed specific Color Books in Package
+#### Seed Specific Color Books
 ```bash
-php artisan laratone:seed PantonePlusSolidCoatedSeeder
+php artisan laratone:seed ColorBookPlusSolidCoatedSeeder
 ```
 
-
-### Seed your own Color Books
-
+#### Import Custom Color Books
 ```bash
 php artisan laratone:seed --file ./mycolorbookfile.json
 ```
 
-Example Color Book format
+Example Color Book format:
 ```json
 {
-  "name": "Pantone Plus Solid Coated",
+  "name": "My Custom Color Book",
   "data": [
     {
-      "name": "Yellow C",
+      "name": "Custom Color 1",
       "lab": "88.19,-6.97,111.73",
       "hex": "FEDD00",
       "rgb": "254,221,0",
       "cmyk": "0,1,100,0"
-    },
-    {
-      "name": "Yellow 012 C",
-      "lab": "86.69,-3.2,109.49",
-      "hex": "FFD700",
-      "rgb": "255,215,0",
-      "cmyk": "0,2,98,0"
-    }...
+    }
+  ]
+}
 ```
 
 ## API
 
 ### Color Books
 
+List all available color books:
 
-
-```http request
-http://example.test/api/laratone/colorbooks
+```http
+GET /api/laratone/colorbooks
 ```
-| URL Parameter | Required | Description                              | Default |
-|---------------|:--------:|------------------------------------------|:-------:|
-| sort          |   false  | Sort Color Book By Name `asc` or `desc`  |   asc   |
 
-#### Example:
-```json
-[
-    {
-        "name": "Pantone Plus Solid Coated 336 new Colors",
-        "slug": "pantone-plus-solid-coated-336-new-colors"
-    },
-    {
-        "name": "Pantone Plus Solid Coated",
-        "slug": "pantone-plus-solid-coated"
-    }...
-]
-```
+| Parameter | Required | Description | Default |
+|-----------|:--------:|-------------|:-------:|
+| sort      | No       | Sort by name (asc/desc) | asc |
 
 ### Colors
 
-Return colors from ColorBook based on ColorBook slug ie.`pantone-plus-solid-coated`
+Get colors from a specific color book:
 
-```http request
-http://example.test/api/laratone/colorbook/pantone-plus-solid-coated
+```http
+GET /api/laratone/colorbook/{color-book-slug}
 ```
 
-| URL Parameter | Required | Description                                          | Default |   |
-|---------------|:--------:|------------------------------------------------------|:-------:|---|
-| sort          |   false  | Sort Colors By Name `asc` or `desc`                  |   asc   |   |
-| limit         |   false  | Limit number of colors returned                      |    -    |   |
-| random        |   false  | Set to `true` to randomize colors (overrides `sort`) |  false  |   |
+| Parameter | Required | Description | Default |
+|-----------|:--------:|-------------|:-------:|
+| sort      | No       | Sort by name (asc/desc) | asc |
+| limit     | No       | Limit number of results | - |
+| random    | No       | Randomize results | false |
 
-#### Example:
-```json
-{
-    "name": "Pantone Plus Solid Coated",
-    "slug": "pantone-plus-solid-coated",
-    "colors": [
-        {
-            "name": "100 C",
-            "lab": null,
-            "hex": "F6EB61",
-            "rgb": null,
-            "cmyk": null
-        },
-        {
-            "name": "101 C",
-            "lab": null,
-            "hex": "F7EA48",
-            "rgb": null,
-            "cmyk": null
-        }...
-}
+## Color Management
+
+Laratone provides a simple API for managing colors programmatically:
+
+```php
+use Daikazu\Laratone\Laratone;
+
+// Get all color books
+$colorBooks = Laratone::colorBooks();
+
+// Get a specific color book
+$colorBook = Laratone::colorBookBySlug('color-book-plus-solid-coated');
+
+// Create a new color book
+$newColorBook = Laratone::createColorBook('My New Color Book');
+
+// Add colors to a color book
+$color = Laratone::addColorToBook($colorBook, [
+    'name' => 'New Color',
+    'hex' => 'FF0000',
+    'rgb' => '255,0,0'
+]);
+
+// Update a color
+Laratone::updateColor($color, ['name' => 'Updated Color Name']);
+
+// Delete a color
+Laratone::deleteColor($color);
 ```
 
+## Caching
 
-## TODO
+Laratone automatically caches color book and color data to improve performance. The cache duration can be configured in the config file. To clear the cache:
 
-- write tests (If someone would like to help with this please send a PR)
+```php
+Laratone::clearCache();
+```
 
 ## Testing
 
 ```bash
 composer test
 ```
-
-## Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
 
 ## Contributing
 

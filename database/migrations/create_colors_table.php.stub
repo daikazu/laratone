@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    private $tableName;
-    private $colorBookTableName;
+    private string $tableName;
+    private string $colorBookTableName;
 
     public function __construct()
     {
@@ -15,9 +15,9 @@ return new class extends Migration
         $this->colorBookTableName = config('laratone.table_prefix') . 'color_books';
     }
 
-    public function up()
+    public function up(): void
     {
-        Schema::create('laratone_table', function (Blueprint $table) {
+        Schema::create($this->tableName, function (Blueprint $table) {
             $table->id();
             $table->bigInteger('color_book_id')->unsigned();
             $table->string('name');
@@ -33,7 +33,7 @@ return new class extends Migration
         });
     }
 
-    public function down()
+    public function down(): void
     {
         Schema::dropIfExists($this->tableName);
     }
