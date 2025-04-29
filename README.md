@@ -53,10 +53,10 @@ Use the Laratone artisan command to seed Color Books to your database.
 
 
 The following Color Books have been made available for you;
-- `PantonePlusSolidCoated`
-- `PantonePlusSolidCoated336NewColors`
-- `PantoneMetallicCoated`
-- `PantonePlusMetallicCoated`
+- `ColorBookPlusSolidCoated`
+- `ColorBookPlusSolidCoated336NewColors`
+- `ColorBookMetallicCoated`
+- `ColorBookPlusMetallicCoated`
 - `GuangShunThreadColors`
 - `HCTwillColors`
 
@@ -67,7 +67,7 @@ php artisan laratone:seed
 
 ### Seed specific Color Books in Package
 ```bash
-php artisan laratone:seed PantonePlusSolidCoatedSeeder
+php artisan laratone:seed ColorBookPlusSolidCoatedSeeder
 ```
 
 
@@ -115,22 +115,22 @@ http://example.test/api/laratone/colorbooks
 ```json
 [
     {
-        "name": "Pantone Plus Solid Coated 336 new Colors",
-        "slug": "pantone-plus-solid-coated-336-new-colors"
+        "name": "Color Book Plus Solid Coated 336 new Colors",
+        "slug": "color-book-plus-solid-coated-336-new-colors"
     },
     {
-        "name": "Pantone Plus Solid Coated",
-        "slug": "pantone-plus-solid-coated"
+        "name": "Color Book Plus Solid Coated",
+        "slug": "color-book-plus-solid-coated"
     }...
 ]
 ```
 
 ### Colors
 
-Return colors from ColorBook based on ColorBook slug ie.`pantone-plus-solid-coated`
+Return colors from ColorBook based on ColorBook slug ie.`color-book-plus-solid-coated`
 
 ```http request
-http://example.test/api/laratone/colorbook/pantone-plus-solid-coated
+http://example.test/api/laratone/colorbook/color-book-plus-solid-coated
 ```
 
 | URL Parameter | Required | Description                                          | Default |   |
@@ -142,8 +142,8 @@ http://example.test/api/laratone/colorbook/pantone-plus-solid-coated
 #### Example:
 ```json
 {
-    "name": "Pantone Plus Solid Coated",
-    "slug": "pantone-plus-solid-coated",
+    "name": "Color Book Plus Solid Coated",
+    "slug": "color-book-plus-solid-coated",
     "colors": [
         {
             "name": "100 C",
