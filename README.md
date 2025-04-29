@@ -1,3 +1,7 @@
+<p align="center">
+<img src="laratone.png" alt="Laratone Logo">
+</p>
+
 # Laratone
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
