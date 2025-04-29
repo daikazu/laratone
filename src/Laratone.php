@@ -17,7 +17,7 @@ class Laratone
      */
     public function colorBooks(): Collection
     {
-        return Cache::remember('laratone.color_books', 3600, fn() => ColorBook::with('colors')->get());
+        return Cache::remember('laratone.color_books', config('laratone.cache_time'), fn () => ColorBook::with('colors')->get());
     }
 
     /**
@@ -31,7 +31,7 @@ class Laratone
         return Cache::remember(
             key: "laratone.color_book.{$colorBookSlug}",
             ttl: config('laratone.cache_time'),
-            callback: fn() => ColorBook::slug($colorBookSlug)->first()
+            callback: fn () => ColorBook::slug($colorBookSlug)->first()
         );
     }
 
@@ -46,10 +46,14 @@ class Laratone
     {
         $slug ??= Str::slug($name);
 
-        return ColorBook::create([
+        $colorBook = ColorBook::create([
             'name' => $name,
             'slug' => $slug,
         ]);
+
+        $this->clearCache();
+
+        return $colorBook;
     }
 
     /**
