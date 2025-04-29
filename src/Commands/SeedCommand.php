@@ -25,7 +25,7 @@ class SeedCommand extends Command
             } else {
                 $allColorBooks = scandir(__DIR__ . '/../../colorbooks/');
 
-                array_map(function ($v) {
+                array_map(function ($v): void {
                     if (! in_array($v, ['.', '..'])) {
                         $this->seed($this->getJSONFileData(str_replace('.json', '', $v), true));
                     }
@@ -67,7 +67,7 @@ class SeedCommand extends Command
 
         $colorBook = $this->createColorBook(name: $jsonColorBook->name);
 
-        array_map(function ($value) use ($colorBook) {
+        array_map(function ($value) use ($colorBook): void {
             $this->createColor(colorBookId: $colorBook->id, value: $value);
         }, $jsonColorBook->data);
 

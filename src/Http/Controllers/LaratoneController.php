@@ -31,7 +31,7 @@ class LaratoneController extends Controller
         $cacheKey = "colorbook:{$slug}:" . md5(json_encode($validated));
 
         $colorBook = Cache::remember($cacheKey, config('laratone.cache_time'), function () use ($slug, $validated) {
-            $query = ColorBook::with(['colors' => function ($query) use ($validated) {
+            $query = ColorBook::with(['colors' => function ($query) use ($validated): void {
                 if (isset($validated['random']) && $validated['random']) {
                     $query->inRandomOrder();
                 }
