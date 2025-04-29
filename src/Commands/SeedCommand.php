@@ -75,20 +75,7 @@ class SeedCommand extends Command
                 throw new Exception("Could not read file: {$filePath}");
             }
 
-            // Debug the raw content
-            $this->info("Debug - Raw file content:");
-            $this->line(substr($content, 0, 500) . "...");
-
             $data = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
-            
-            // Debug the parsed data structure
-            $this->info("Debug - Data structure:");
-            $this->line("Name: " . ($data->name ?? 'not set'));
-            $this->line("Data count: " . count($data->data ?? []));
-            if (isset($data->data[0])) {
-                $this->line("First color: " . json_encode($data->data[0]));
-            }
-
             return $data;
         } catch (Exception $e) {
             $this->error('Error processing color book: ' . $e->getMessage());
@@ -98,15 +85,6 @@ class SeedCommand extends Command
 
     private function validateColorBookData(object $data): object
     {
-        // Debug the data structure
-        $this->info("Debug - Validating color book:");
-        $this->line("Name: " . ($data->name ?? 'not set'));
-        $this->line("Data count: " . count($data->data ?? []));
-        
-        if (isset($data->data[0])) {
-            $this->line("First color in validation: " . json_encode($data->data[0]));
-        }
-
         // Create a new object to store validated data
         $validatedData = new \stdClass();
         $validatedData->name = $data->name;
@@ -114,13 +92,7 @@ class SeedCommand extends Command
 
         // Validate each color individually
         foreach ($data->data as $index => $color) {
-            // Debug the current color
-            $this->info("Debug - Validating color at index {$index}:");
-            $this->line(json_encode($color));
-
             if (!isset($color->name) || trim($color->name) === '') {
-                $this->error("Debug - Invalid color at index {$index}:");
-                $this->error("Raw color data: " . json_encode($color));
                 throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Name is empty or not set");
             }
 
@@ -132,19 +104,7 @@ class SeedCommand extends Command
             $validatedColor->rgb = $color->rgb ?? null;
             $validatedColor->cmyk = $color->cmyk ?? null;
 
-            // Debug the validated color
-            $this->info("Debug - Validated color at index {$index}:");
-            $this->line(json_encode($validatedColor));
-
             $validatedData->data[] = $validatedColor;
-        }
-
-        // Debug the final validated data
-        $this->info("Debug - Final validated data:");
-        $this->line("Name: " . $validatedData->name);
-        $this->line("Data count: " . count($validatedData->data));
-        if (isset($validatedData->data[0])) {
-            $this->line("First validated color: " . json_encode($validatedData->data[0]));
         }
 
         return $validatedData;
@@ -173,9 +133,6 @@ class SeedCommand extends Command
 
                 foreach ($validatedData->data as $index => $color) {
                     try {
-                        $this->info("Debug - Processing color at index {$index}:");
-                        $this->line(json_encode($color));
-
                         $this->createColor($colorBook->id, $color);
                         $progressBar->advance();
                     } catch (\Exception $e) {
@@ -208,9 +165,6 @@ class SeedCommand extends Command
 
     private function createColor(int $colorBookId, object $value): void
     {
-        $this->info("Debug - Creating color with data:");
-        $this->line(json_encode($value));
-
         if (!isset($value->name) || trim($value->name) === '') {
             throw new Exception("Cannot create color with empty name for color book ID: {$colorBookId}");
         }
