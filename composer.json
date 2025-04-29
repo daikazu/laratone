@@ -36,7 +36,8 @@
     "autoload": {
         "psr-4": {
             "Daikazu\\Laratone\\": "src/",
-            "Daikazu\\Laratone\\Database\\Factories\\": "database/factories/"
+            "Daikazu\\Laratone\\Database\\Factories\\": "database/factories/",
+            "Daikazu\\Laratone\\Database\\Seeders\\": "database/seeders/"
         }
     },
     "autoload-dev": {
