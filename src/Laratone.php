@@ -31,9 +31,9 @@ class Laratone
     public function colorBookBySlug(string $colorBookSlug): ?ColorBook
     {
         return Cache::remember(
-            "laratone.color_book.{$colorBookSlug}",
-            3600,
-            function () use ($colorBookSlug) {
+            key: "laratone.color_book.{$colorBookSlug}",
+            ttl: config('laratone.cache_time'),
+            callback: function () use ($colorBookSlug) {
                 return ColorBook::slug($colorBookSlug)->first();
             }
         );
@@ -133,9 +133,9 @@ class Laratone
     public function getColorsFromBook(ColorBook $colorBook): Collection
     {
         return Cache::remember(
-            "laratone.color_book.{$colorBook->slug}.colors",
-            3600,
-            fn () => $colorBook->colors()->get()
+            key: "laratone.color_book.{$colorBook->slug}.colors",
+            ttl: config('laratone.cache_time'),
+            callback: fn () => $colorBook->colors()->get()
         );
     }
 }

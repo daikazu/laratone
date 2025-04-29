@@ -3,55 +3,91 @@
 namespace Daikazu\Laratone\Http\Controllers;
 
 use Daikazu\Laratone\Models\ColorBook;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
-use Illuminate\Support\Facades\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 class LaratoneController extends Controller
 {
-    public function colorbook($slug)
+    /**
+     * Get a color book by its slug with optional filtering and sorting.
+     *
+     * @param  string  $slug  The slug of the color book to retrieve
+     * @return JsonResponse The color book data with its colors
+     *
+     * @throws ValidationException If the request validation fails
+     */
+    public function colorbook(Request $request, string $slug): JsonResponse
     {
-        $validated = Request::validate([
-            'limit'  => 'nullable|integer',
+        $validated = $request->validate([
+            'limit'  => 'nullable|integer|min:1',
             'sort'   => ['nullable', Rule::in(['asc', 'desc'])],
             'random' => 'nullable|boolean',
         ]);
 
-        return ColorBook::with([
-            'colors' => function ($query) use ($validated) {
-                $this->applyQueryOptions($query, $validated);
-            },
-        ])
-            ->slug($slug)
-            ->first()
-            ->only('name', 'slug', 'colors');
+        $cacheKey = "colorbook:{$slug}:" . md5(json_encode($validated));
+
+        $colorBook = Cache::remember($cacheKey, config('laratone.cache_time'), function () use ($slug, $validated) {
+            $query = ColorBook::with(['colors' => function ($query) use ($validated) {
+                if (isset($validated['random']) && $validated['random']) {
+                    $query->inRandomOrder();
+                }
+
+                if (isset($validated['sort'])) {
+                    $query->orderBy('name', $validated['sort']);
+                }
+
+                if (isset($validated['limit'])) {
+                    $query->limit($validated['limit']);
+                }
+            }]);
+
+            $colorBook = $query->slug($slug)->first();
+
+            if (! $colorBook) {
+                return null;
+            }
+
+            return $colorBook->only('name', 'slug', 'colors');
+        });
+
+        if (! $colorBook) {
+            return response()->json([
+                'message' => 'Color book not found',
+            ], 404);
+        }
+
+        return response()->json($colorBook);
     }
 
-    public function colorbooks()
+    /**
+     * Get all color books with optional sorting.
+     *
+     * @return JsonResponse The list of color books
+     *
+     * @throws ValidationException If the request validation fails
+     */
+    public function colorbooks(Request $request): JsonResponse
     {
-        $validated = Request::validate([
+        $validated = $request->validate([
             'sort' => ['nullable', Rule::in(['asc', 'desc'])],
         ]);
 
-        $query = ColorBook::select('name', 'slug');
+        $cacheKey = 'colorbooks:' . md5(json_encode($validated));
 
-        $this->applyQueryOptions($query, $validated);
+        $colorBooks = Cache::remember($cacheKey, config('laratone.cache_time'), function () use ($validated) {
+            $query = ColorBook::select('name', 'slug');
 
-        return $query->get();
-    }
+            if (isset($validated['sort'])) {
+                $query->orderBy('name', $validated['sort']);
+            }
 
-    private function applyQueryOptions($query, $options)
-    {
-        if (isset($options['random']) && $options['random']) {
-            $query->inRandomOrder();
-        }
+            return $query->get();
+        });
 
-        if (isset($options['sort'])) {
-            $query->orderBy('name', $options['sort']);
-        }
-
-        if (isset($options['limit'])) {
-            $query->limit($options['limit']);
-        }
+        return response()->json($colorBooks);
     }
 }

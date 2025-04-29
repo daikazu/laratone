@@ -14,6 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $slug
  * @property Carbon $created_at
  * @property Carbon $updated_at
+ *
+ * @method static slug(string $slug)
  */
 class ColorBook extends Model
 {
@@ -21,7 +23,8 @@ class ColorBook extends Model
 
     protected $table = 'color_books';
     protected $fillable = ['name', 'slug'];
-    protected $hidden = ['created_at', 'updated_at'];
+    protected $guarded = ['id'];
+    protected $hidden = ['id', 'color_book_id', 'created_at', 'updated_at'];
 
     public function __construct(array $attributes = [])
     {
