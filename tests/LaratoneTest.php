@@ -25,7 +25,7 @@ beforeEach(function (): void {
 
 });
 
-test('can get all color books', function () {
+test('can get all color books', function (): void {
     $colorBook = ColorBook::factory()->create();
     $color = Color::factory()->create(['color_book_id' => $colorBook->id]);
 
@@ -37,7 +37,7 @@ test('can get all color books', function () {
         ->and($result->first()->colors->first()->name)->toBe($color->name);
 });
 
-test('can get color book by slug', function () {
+test('can get color book by slug', function (): void {
     $colorBook = ColorBook::factory()->create(['slug' => 'test-book']);
     $color = Color::factory()->create(['color_book_id' => $colorBook->id]);
 
@@ -49,14 +49,14 @@ test('can get color book by slug', function () {
         ->and($result->name)->toBe($colorBook->name);
 });
 
-test('returns null for non-existent color book slug', function () {
+test('returns null for non-existent color book slug', function (): void {
     $laratone = new Laratone;
     $result = $laratone->colorBookBySlug('non-existent');
 
     expect($result)->toBeNull();
 });
 
-test('can create a new color book', function () {
+test('can create a new color book', function (): void {
     $laratone = new Laratone;
     $result = $laratone->createColorBook('Test Book');
 
@@ -65,7 +65,7 @@ test('can create a new color book', function () {
         ->and($result->slug)->toBe('test-book');
 });
 
-test('can create color book with custom slug', function () {
+test('can create color book with custom slug', function (): void {
     $laratone = new Laratone;
     $result = $laratone->createColorBook('Test Book', 'custom-slug');
 
@@ -74,7 +74,7 @@ test('can create color book with custom slug', function () {
         ->and($result->slug)->toBe('custom-slug');
 });
 
-test('can add color to book', function () {
+test('can add color to book', function (): void {
     $colorBook = ColorBook::factory()->create();
     $laratone = new Laratone;
 
@@ -92,7 +92,7 @@ test('can add color to book', function () {
         ->and($result->color_book_id)->toBe($colorBook->id);
 });
 
-test('can add multiple colors to book', function () {
+test('can add multiple colors to book', function (): void {
     $colorBook = ColorBook::factory()->create();
     $laratone = new Laratone;
 
@@ -109,7 +109,7 @@ test('can add multiple colors to book', function () {
         ->and($result->last()->name)->toBe('Color 2');
 });
 
-test('can update color', function () {
+test('can update color', function (): void {
     $colorBook = ColorBook::factory()->create();
     $color = Color::factory()->create(['color_book_id' => $colorBook->id]);
     $laratone = new Laratone;
@@ -120,7 +120,7 @@ test('can update color', function () {
         ->and($color->fresh()->name)->toBe('Updated Color');
 });
 
-test('can delete color', function () {
+test('can delete color', function (): void {
     $colorBook = ColorBook::factory()->create();
     $color = Color::factory()->create(['color_book_id' => $colorBook->id]);
     $laratone = new Laratone;
@@ -131,7 +131,7 @@ test('can delete color', function () {
         ->and(Color::find($color->id))->toBeNull();
 });
 
-test('can get colors from book', function () {
+test('can get colors from book', function (): void {
     $colorBook = ColorBook::factory()->create();
     $color = Color::factory()->create(['color_book_id' => $colorBook->id]);
     $laratone = new Laratone;
@@ -142,7 +142,7 @@ test('can get colors from book', function () {
         ->and($result->first()->name)->toBe($color->name);
 });
 
-test('clears cache when modifying data', function () {
+test('clears cache when modifying data', function (): void {
     $colorBook = ColorBook::factory()->create();
     $laratone = new Laratone;
 

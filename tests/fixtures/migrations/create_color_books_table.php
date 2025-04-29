@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    private string $tableName;
+    private readonly string $tableName;
 
     public function __construct()
     {
@@ -15,7 +15,7 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::create($this->tableName, function (Blueprint $table) {
+        Schema::create($this->tableName, function (Blueprint $table): void {
             $table->id();
             $table->string('name');
             $table->string('slug')->unique()->index();

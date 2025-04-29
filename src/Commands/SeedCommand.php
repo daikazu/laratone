@@ -123,7 +123,7 @@ class SeedCommand extends Command
             // Validate the data first
             $validatedData = $this->validateColorBookData($jsonColorBook);
 
-            DB::transaction(function () use ($validatedData) {
+            DB::transaction(function () use ($validatedData): void {
                 $colorBook = $this->createColorBook(name: $validatedData->name);
 
                 $progressBar = $this->output->createProgressBar(count($validatedData->data));
@@ -171,7 +171,7 @@ class SeedCommand extends Command
 
         try {
             // Clean up hex value if it exists
-            $hex = !empty($value->hex) ? strtoupper(preg_replace('/[^0-9A-F]/', '', $value->hex)) : null;
+            $hex = !empty($value->hex) ? strtoupper(preg_replace('/[^0-9A-F]/', '', (string) $value->hex)) : null;
 
             Color::create([
                 'color_book_id' => $colorBookId,

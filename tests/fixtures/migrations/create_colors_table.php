@@ -6,8 +6,8 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    private string $tableName;
-    private string $colorBookTableName;
+    private readonly string $tableName;
+    private readonly string $colorBookTableName;
 
     public function __construct()
     {
@@ -17,7 +17,7 @@ return new class extends Migration
 
     public function up(): void
     {
-        Schema::create($this->tableName, function (Blueprint $table) {
+        Schema::create($this->tableName, function (Blueprint $table): void {
             $table->id();
             $table->bigInteger('color_book_id')->unsigned();
             $table->string('name');

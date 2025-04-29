@@ -24,7 +24,7 @@ beforeEach(function (): void {
 
 });
 
-test('can get color book by slug', function () {
+test('can get color book by slug', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     $color = Color::create([
         'name' => 'Test Color',
@@ -41,7 +41,7 @@ test('can get color book by slug', function () {
         ->and($response->getData()->colors[0]->name)->toBe($color->name);
 });
 
-test('returns 404 for non-existent color book', function () {
+test('returns 404 for non-existent color book', function (): void {
     $controller = new LaratoneController;
     $response = $controller->colorbook(request(), 'non-existent');
 
@@ -50,7 +50,7 @@ test('returns 404 for non-existent color book', function () {
         ->and($response->getData()->message)->toBe('Color book not found');
 });
 
-test('can get color book with limit parameter', function () {
+test('can get color book with limit parameter', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     Color::create(['name' => 'Color 1', 'hex' => '#FF0000', 'color_book_id' => $colorBook->id]);
     Color::create(['name' => 'Color 2', 'hex' => '#00FF00', 'color_book_id' => $colorBook->id]);
@@ -63,7 +63,7 @@ test('can get color book with limit parameter', function () {
     expect($response->getData()->colors)->toHaveCount(2);
 });
 
-test('can get color book with sort parameter', function () {
+test('can get color book with sort parameter', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     Color::create(['name' => 'B Color', 'hex' => '#FF0000', 'color_book_id' => $colorBook->id]);
     Color::create(['name' => 'A Color', 'hex' => '#00FF00', 'color_book_id' => $colorBook->id]);
@@ -76,7 +76,7 @@ test('can get color book with sort parameter', function () {
         ->and($response->getData()->colors[1]->name)->toBe('B Color');
 });
 
-test('can get color book with random parameter', function () {
+test('can get color book with random parameter', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     Color::create(['name' => 'Color 1', 'hex' => '#FF0000', 'color_book_id' => $colorBook->id]);
     Color::create(['name' => 'Color 2', 'hex' => '#00FF00', 'color_book_id' => $colorBook->id]);
@@ -91,7 +91,7 @@ test('can get color book with random parameter', function () {
     expect($response1->getData()->colors)->not->toBe($response2->getData()->colors);
 });
 
-test('can get all color books', function () {
+test('can get all color books', function (): void {
     ColorBook::create(['name' => 'Book 1', 'slug' => 'book-1']);
     ColorBook::create(['name' => 'Book 2', 'slug' => 'book-2']);
 
@@ -103,7 +103,7 @@ test('can get all color books', function () {
         ->and($response->getData())->toHaveCount(2);
 });
 
-test('can get color books with sort parameter', function () {
+test('can get color books with sort parameter', function (): void {
     ColorBook::create(['name' => 'B Book', 'slug' => 'b-book']);
     ColorBook::create(['name' => 'A Book', 'slug' => 'a-book']);
 
@@ -115,7 +115,7 @@ test('can get color books with sort parameter', function () {
         ->and($response->getData()[1]->name)->toBe('B Book');
 });
 
-test('caches color book responses', function () {
+test('caches color book responses', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     $color = Color::create([
         'name' => 'Test Color',
