@@ -62,11 +62,11 @@ class SeedCommand extends Command
     private function getJSONFileData($file, $byName = false): object
     {
         try {
-            $filePath = $byName
+            $filePath = $byName 
                 ? __DIR__ . '/../../colorbooks/' . $file . '.json'
                 : $file;
 
-            if (! file_exists($filePath)) {
+            if (!file_exists($filePath)) {
                 throw new Exception("File not found: {$filePath}");
             }
 
@@ -75,9 +75,18 @@ class SeedCommand extends Command
                 throw new Exception("Could not read file: {$filePath}");
             }
 
-            $data = json_decode($content);
-            if (json_last_error() !== JSON_ERROR_NONE) {
-                throw new Exception("Invalid JSON in file: {$filePath}");
+            // Debug the raw content
+            $this->info("Debug - Raw file content:");
+            $this->line(substr($content, 0, 500) . "...");
+
+            $data = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
+            
+            // Debug the parsed data structure
+            $this->info("Debug - Data structure:");
+            $this->line("Name: " . ($data->name ?? 'not set'));
+            $this->line("Data count: " . count($data->data ?? []));
+            if (isset($data->data[0])) {
+                $this->line("First color: " . json_encode($data->data[0]));
             }
 
             return $data;
@@ -87,18 +96,58 @@ class SeedCommand extends Command
         }
     }
 
-    private function validateColorBookData(object $data): void
+    private function validateColorBookData(object $data): object
     {
-        $validator = Validator::make((array) $data, [
-            'name'        => 'required|string',
-            'data'        => 'required|array',
-            'data.*.name' => 'required|string',
-            'data.*.hex'  => 'nullable|string|regex:/^#[0-9A-F]{6}$/i',
-        ]);
-
-        if ($validator->fails()) {
-            throw new Exception('Invalid color book data: ' . implode(', ', $validator->errors()->all()));
+        // Debug the data structure
+        $this->info("Debug - Validating color book:");
+        $this->line("Name: " . ($data->name ?? 'not set'));
+        $this->line("Data count: " . count($data->data ?? []));
+        
+        if (isset($data->data[0])) {
+            $this->line("First color in validation: " . json_encode($data->data[0]));
         }
+
+        // Create a new object to store validated data
+        $validatedData = new \stdClass();
+        $validatedData->name = $data->name;
+        $validatedData->data = [];
+
+        // Validate each color individually
+        foreach ($data->data as $index => $color) {
+            // Debug the current color
+            $this->info("Debug - Validating color at index {$index}:");
+            $this->line(json_encode($color));
+
+            if (!isset($color->name) || trim($color->name) === '') {
+                $this->error("Debug - Invalid color at index {$index}:");
+                $this->error("Raw color data: " . json_encode($color));
+                throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Name is empty or not set");
+            }
+
+            // Create a new object for each color
+            $validatedColor = new \stdClass();
+            $validatedColor->name = trim($color->name);
+            $validatedColor->lab = $color->lab ?? null;
+            $validatedColor->hex = $color->hex ?? null;
+            $validatedColor->rgb = $color->rgb ?? null;
+            $validatedColor->cmyk = $color->cmyk ?? null;
+
+            // Debug the validated color
+            $this->info("Debug - Validated color at index {$index}:");
+            $this->line(json_encode($validatedColor));
+
+            $validatedData->data[] = $validatedColor;
+        }
+
+        // Debug the final validated data
+        $this->info("Debug - Final validated data:");
+        $this->line("Name: " . $validatedData->name);
+        $this->line("Data count: " . count($validatedData->data));
+        if (isset($validatedData->data[0])) {
+            $this->line("First validated color: " . json_encode($validatedData->data[0]));
+        }
+
+        return $validatedData;
     }
 
     private function seed(object $jsonColorBook): void
@@ -107,28 +156,46 @@ class SeedCommand extends Command
 
         if (ColorBook::where('slug', $slug)->exists()) {
             $this->warn("Color Book '{$jsonColorBook->name}' already exists. Skipping...");
-
             return;
         }
 
-        DB::transaction(function () use ($jsonColorBook) {
-            $colorBook = $this->createColorBook(name: $jsonColorBook->name);
+        try {
+            // Validate the data first
+            $validatedData = $this->validateColorBookData($jsonColorBook);
 
-            $progressBar = $this->output->createProgressBar(count($jsonColorBook->data));
-            $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% %message%');
-            $progressBar->setMessage('Seeding colors...');
-            $progressBar->start();
+            DB::transaction(function () use ($validatedData) {
+                $colorBook = $this->createColorBook(name: $validatedData->name);
 
-            foreach ($jsonColorBook->data as $color) {
-                $this->createColor(colorBookId: $colorBook->id, value: $color);
-                $progressBar->advance();
-            }
+                $progressBar = $this->output->createProgressBar(count($validatedData->data));
+                $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% %message%');
+                $progressBar->setMessage('Seeding colors...');
+                $progressBar->start();
 
-            $progressBar->finish();
-            $this->newLine();
-        });
+                foreach ($validatedData->data as $index => $color) {
+                    try {
+                        $this->info("Debug - Processing color at index {$index}:");
+                        $this->line(json_encode($color));
 
-        $this->info("✓ {$jsonColorBook->name} seeded successfully.");
+                        $this->createColor($colorBook->id, $color);
+                        $progressBar->advance();
+                    } catch (\Exception $e) {
+                        $progressBar->clear();
+                        $this->error("\nError in color book '{$validatedData->name}' at color index {$index}:");
+                        $this->error($e->getMessage());
+                        throw $e;
+                    }
+                }
+
+                $progressBar->finish();
+                $this->newLine();
+            });
+
+            $this->info("✓ {$validatedData->name} seeded successfully.");
+        } catch (\Exception $e) {
+            $this->error("\nFailed to seed color book '{$jsonColorBook->name}':");
+            $this->error($e->getMessage());
+            throw $e;
+        }
     }
 
     private function createColorBook(string $name): ColorBook
@@ -141,13 +208,28 @@ class SeedCommand extends Command
 
     private function createColor(int $colorBookId, object $value): void
     {
-        Color::create([
-            'color_book_id' => $colorBookId,
-            'name'          => $value->name,
-            'hex'           => $value?->hex,
-            'lab'           => $value?->lab,
-            'rgb'           => $value?->rgb,
-            'cmyk'          => $value?->cmyk,
-        ]);
+        $this->info("Debug - Creating color with data:");
+        $this->line(json_encode($value));
+
+        if (!isset($value->name) || trim($value->name) === '') {
+            throw new Exception("Cannot create color with empty name for color book ID: {$colorBookId}");
+        }
+
+        try {
+            // Clean up hex value if it exists
+            $hex = !empty($value->hex) ? strtoupper(preg_replace('/[^0-9A-F]/', '', $value->hex)) : null;
+
+            Color::create([
+                'color_book_id' => $colorBookId,
+                'name'          => trim($value->name),
+                'hex'           => $hex,
+                'lab'           => $value->lab,
+                'rgb'           => $value->rgb,
+                'cmyk'          => $value->cmyk,
+            ]);
+        } catch (\Exception $e) {
+            $colorBook = ColorBook::find($colorBookId);
+            throw new Exception("Failed to create color '{$value->name}' in color book '{$colorBook->name}': " . $e->getMessage());
+        }
     }
 }
