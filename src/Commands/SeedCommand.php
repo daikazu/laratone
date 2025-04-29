@@ -6,6 +6,8 @@ use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
 use Exception;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 class SeedCommand extends Command
@@ -16,62 +18,117 @@ class SeedCommand extends Command
 
     public function handle(): int
     {
-        $file = $this->option('file') ? base_path($this->option('file')) : null;
+        try {
+            $file = $this->option('file') ? base_path($this->option('file')) : null;
 
-        if ($file === null) {
-            if ($this->argument('name')) {
-                $data = $this->getJSONFileData($this->argument('name'), true);
-                $this->seed($data);
-            } else {
-                $allColorBooks = scandir(__DIR__ . '/../../colorbooks/');
+            if ($file === null) {
+                if ($this->argument('name')) {
+                    $data = $this->getJSONFileData($this->argument('name'), true);
+                    $this->validateColorBookData($data);
+                    $this->seed($data);
+                } else {
+                    $allColorBooks = array_diff(scandir(__DIR__ . '/../../colorbooks/'), ['.', '..']);
 
-                array_map(function ($v): void {
-                    if (! in_array($v, ['.', '..'])) {
-                        $this->seed($this->getJSONFileData(str_replace('.json', '', $v), true));
+                    $this->info('Starting to seed all color books...');
+                    $progressBar = $this->output->createProgressBar(count($allColorBooks));
+                    $progressBar->start();
+
+                    foreach ($allColorBooks as $colorBook) {
+                        $data = $this->getJSONFileData(str_replace('.json', '', $colorBook), true);
+                        $this->validateColorBookData($data);
+                        $this->seed($data);
+                        $progressBar->advance();
                     }
-                }, $allColorBooks);
+
+                    $progressBar->finish();
+                    $this->newLine(2);
+                }
+            } else {
+                $data = $this->getJSONFileData($file);
+                $this->validateColorBookData($data);
+                $this->seed($data);
             }
-        } else {
-            $data = $this->getJSONFileData($file);
+
+            $this->info("<options=bold,reverse;fg=green> All Files Seeded Successfully </> 🤙\n");
+
+            return self::SUCCESS;
+        } catch (Exception $e) {
+            $this->error('An error occurred while seeding: ' . $e->getMessage());
+
+            return self::FAILURE;
         }
-
-        $this->info("<options=bold,reverse;fg=green> All Files Seeded </> 🤙\n");
-
-        return self::SUCCESS;
     }
 
-    private function getJSONFileData($file, $byName = false)
+    private function getJSONFileData($file, $byName = false): object
     {
         try {
-            if ($byName) {
-                return json_decode(file_get_contents(__DIR__ . '/../../colorbooks/' . $file . '.json'));
+            $filePath = $byName
+                ? __DIR__ . '/../../colorbooks/' . $file . '.json'
+                : $file;
+
+            if (! file_exists($filePath)) {
+                throw new Exception("File not found: {$filePath}");
             }
 
-            return json_decode(file_get_contents($file));
+            $content = file_get_contents($filePath);
+            if ($content === false) {
+                throw new Exception("Could not read file: {$filePath}");
+            }
+
+            $data = json_decode($content);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                throw new Exception("Invalid JSON in file: {$filePath}");
+            }
+
+            return $data;
         } catch (Exception $e) {
-            $this->error('Color Book Not Found!');
+            $this->error('Error processing color book: ' . $e->getMessage());
             throw $e;
         }
     }
 
-    private function seed($jsonColorBook)
+    private function validateColorBookData(object $data): void
+    {
+        $validator = Validator::make((array) $data, [
+            'name'        => 'required|string',
+            'data'        => 'required|array',
+            'data.*.name' => 'required|string',
+            'data.*.hex'  => 'nullable|string|regex:/^#[0-9A-F]{6}$/i',
+        ]);
+
+        if ($validator->fails()) {
+            throw new Exception('Invalid color book data: ' . implode(', ', $validator->errors()->all()));
+        }
+    }
+
+    private function seed(object $jsonColorBook): void
     {
         $slug = Str::slug($jsonColorBook->name);
 
-        // check if slug exists
         if (ColorBook::where('slug', $slug)->exists()) {
-            $this->error('Color Book slug ' . $slug . ' already exists!');
+            $this->warn("Color Book '{$jsonColorBook->name}' already exists. Skipping...");
 
             return;
         }
 
-        $colorBook = $this->createColorBook(name: $jsonColorBook->name);
+        DB::transaction(function () use ($jsonColorBook) {
+            $colorBook = $this->createColorBook(name: $jsonColorBook->name);
 
-        array_map(function ($value) use ($colorBook): void {
-            $this->createColor(colorBookId: $colorBook->id, value: $value);
-        }, $jsonColorBook->data);
+            $progressBar = $this->output->createProgressBar(count($jsonColorBook->data));
+            $progressBar->setFormat(' %current%/%max% [%bar%] %percent:3s%% %message%');
+            $progressBar->setMessage('Seeding colors...');
+            $progressBar->start();
 
-        $this->info('- ' . $jsonColorBook->name . ' seeded.');
+            foreach ($jsonColorBook->data as $color) {
+                $this->createColor(colorBookId: $colorBook->id, value: $color);
+                $progressBar->advance();
+            }
+
+            $progressBar->finish();
+            $this->newLine();
+        });
+
+        $this->info("✓ {$jsonColorBook->name} seeded successfully.");
     }
 
     private function createColorBook(string $name): ColorBook
@@ -82,7 +139,7 @@ class SeedCommand extends Command
         ]);
     }
 
-    private function createColor(int $colorBookId, $value): void
+    private function createColor(int $colorBookId, object $value): void
     {
         Color::create([
             'color_book_id' => $colorBookId,
