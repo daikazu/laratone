@@ -1,6 +1,9 @@
-<p align="center">
-<img src="laratone.png" alt="Laratone Logo">
-</p>
+<a href="https://mikewall.dev">
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="art/header-dark.png">
+  <img alt="Logo for Laratone" src="art/header-light.png">
+</picture>
+</a>
 
 # Laratone
 
