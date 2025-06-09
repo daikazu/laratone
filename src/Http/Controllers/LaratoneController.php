@@ -47,11 +47,8 @@ class LaratoneController extends Controller
 
             $colorBook = $query->slug($slug)->first();
 
-            if (! $colorBook) {
-                return null;
-            }
+            return $colorBook?->only('name', 'slug', 'colors');
 
-            return $colorBook->only('name', 'slug', 'colors');
         });
 
         if (! $colorBook) {
