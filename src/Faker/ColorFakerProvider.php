@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daikazu\Laratone\Faker;
 
 use Faker\Provider\Base;
 
-class ColorFakerProvider extends Base
+final class ColorFakerProvider extends Base
 {
     public function labColor(): string
     {
