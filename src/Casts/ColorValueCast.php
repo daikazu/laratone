@@ -18,14 +18,19 @@ final readonly class ColorValueCast implements CastsAttributes
      */
     private array $keys;
 
+    private string $valueType;
+
     /**
-     * Laravel passes cast arguments as strings, so we accept string and parse it.
+     * Laravel passes cast arguments as separate parameters (commas are parameter separators).
+     * For RGB: ColorValueCast:r,g,b,int -> receives ('r', 'g', 'b', 'int')
+     * For CMYK: ColorValueCast:c,m,y,k,int -> receives ('c', 'm', 'y', 'k', 'int')
+     * For LAB: ColorValueCast:l,a,b,float -> receives ('l', 'a', 'b', 'float')
      */
-    public function __construct(
-        string $keys,
-        private string $type = 'float',
-    ) {
-        $this->keys = explode(',', $keys);
+    public function __construct(string ...$args)
+    {
+        // Last argument is the type (int or float), rest are keys
+        $this->valueType = array_pop($args) ?? 'float';
+        $this->keys = $args;
     }
 
     public static function forType(ColorType $colorType): string
@@ -33,7 +38,7 @@ final readonly class ColorValueCast implements CastsAttributes
         $keys = implode(',', $colorType->components());
         $type = $colorType->valueType();
 
-        return self::class . ":{$keys}:{$type}";
+        return self::class . ":{$keys},{$type}";
     }
 
     /**
@@ -52,7 +57,7 @@ final readonly class ColorValueCast implements CastsAttributes
             return null;
         }
 
-        $values = match ($this->type) {
+        $values = match ($this->valueType) {
             'int'   => array_map(intval(...), $values),
             default => array_map(floatval(...), $values),
         };
@@ -70,7 +75,6 @@ final readonly class ColorValueCast implements CastsAttributes
         }
 
         // Handle both array (from casted model) and string (from factory/raw input)
-        // @phpstan-ignore function.impossibleType (runtime can receive both types)
         if (is_array($value)) {
             return implode(',', $value);
         }

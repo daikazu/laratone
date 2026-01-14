@@ -25,7 +25,10 @@ final class SeedCommand extends Command
     {
         try {
             $file = $this->option('file');
-            $filePath = $file !== null ? base_path((string) $file) : null;
+            // Support both absolute paths and paths relative to base_path
+            $filePath = $file !== null
+                ? (str_starts_with((string) $file, '/') ? (string) $file : base_path((string) $file))
+                : null;
 
             if ($filePath === null) {
                 $name = $this->argument('name');
