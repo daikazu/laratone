@@ -15,17 +15,20 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 
 ## Features
 
-- 🎨 Multiple built-in color libraries (Pantone, GuangShun Thread, HC Twill)
-- 🔄 Automatic color data caching for improved performance
-- 📦 Easy color book management and seeding
-- 🔍 Flexible API for color searching and filtering
-- 🛠️ Simple integration with Laravel applications
-- 📝 Support for custom color books and formats
+- Multiple built-in color libraries (Pantone, GuangShun Thread, HC Twill)
+- Automatic color data caching with configurable TTL
+- Easy color book management and seeding
+- Flexible REST API with filtering, sorting, and pagination
+- Rate-limited API endpoints for security
+- Type-safe color value casting (LAB, RGB, CMYK)
+- Full PHP 8.4 support with strict typing throughout
 
 ## Requirements
 
-- PHP 8.3 or higher
-- Laravel 11.x or greater
+- PHP 8.4 or higher
+- Laravel 12.x or greater
+
+> **Note:** For PHP 8.3 / Laravel 11 support, use version 4.x of this package.
 
 ## Installation
 
@@ -58,7 +61,7 @@ The published config file (`config/laratone.php`) contains the following options
 return [
     // Table prefix for Laratone tables
     'table_prefix' => 'laratone_',
-    
+
     // Cache duration in seconds for color books and colors
     'cache_time' => 3600,
 ];
@@ -108,7 +111,9 @@ Example Color Book format:
 }
 ```
 
-## API
+## REST API
+
+All API endpoints are rate-limited to 60 requests per minute.
 
 ### Color Books
 
@@ -120,59 +125,108 @@ GET /api/laratone/colorbooks
 
 | Parameter | Required | Description | Default |
 |-----------|:--------:|-------------|:-------:|
-| sort      | No       | Sort by name (asc/desc) | asc |
+| sort      | No       | Sort by name (asc/desc) | - |
 
 ### Colors
 
 Get colors from a specific color book:
 
 ```http
-GET /api/laratone/colorbook/{color-book-slug}
+GET /api/laratone/colorbook/{slug}
 ```
 
 | Parameter | Required | Description | Default |
 |-----------|:--------:|-------------|:-------:|
-| sort      | No       | Sort by name (asc/desc) | asc |
+| sort      | No       | Sort by name (asc/desc) | - |
 | limit     | No       | Limit number of results | - |
-| random    | No       | Randomize results | false |
+| random    | No       | Randomize results (1/true) | false |
 
-## Color Management
+> **Note:** When using `random=true`, results are not cached to ensure different results on each request.
+
+## Programmatic Usage
 
 Laratone provides a simple API for managing colors programmatically:
 
 ```php
-use Daikazu\Laratone\Laratone;
+use Daikazu\Laratone\Facades\Laratone;
 
-// Get all color books
+// Get all color books with colors
 $colorBooks = Laratone::colorBooks();
 
-// Get a specific color book
+// Get a specific color book by slug
 $colorBook = Laratone::colorBookBySlug('color-book-plus-solid-coated');
 
 // Create a new color book
 $newColorBook = Laratone::createColorBook('My New Color Book');
 
-// Add colors to a color book
+// Create with custom slug
+$newColorBook = Laratone::createColorBook('My Color Book', 'custom-slug');
+
+// Add a single color to a color book
 $color = Laratone::addColorToBook($colorBook, [
     'name' => 'New Color',
     'hex' => 'FF0000',
-    'rgb' => '255,0,0'
+    'rgb' => '255,0,0',
+    'lab' => '53.23,80.11,67.22',
+    'cmyk' => '0,100,100,0',
 ]);
+
+// Add multiple colors at once
+$colors = Laratone::addColorsToBook($colorBook, [
+    ['name' => 'Red', 'hex' => 'FF0000'],
+    ['name' => 'Green', 'hex' => '00FF00'],
+    ['name' => 'Blue', 'hex' => '0000FF'],
+]);
+
+// Get all colors from a color book
+$colors = Laratone::getColorsFromBook($colorBook);
 
 // Update a color
 Laratone::updateColor($color, ['name' => 'Updated Color Name']);
 
 // Delete a color
 Laratone::deleteColor($color);
+
+// Clear cache manually
+Laratone::clearCache();
+```
+
+## Working with Color Models
+
+Color values are automatically cast to associative arrays when accessed:
+
+```php
+use Daikazu\Laratone\Models\Color;
+
+$color = Color::first();
+
+// Access color values as arrays
+$color->rgb;  // ['r' => 255, 'g' => 0, 'b' => 0]
+$color->lab;  // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22]
+$color->cmyk; // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0]
+$color->hex;  // 'FF0000'
+
+// Access the parent color book
+$colorBook = $color->colorBook;
 ```
 
 ## Caching
 
-Laratone automatically caches color book and color data to improve performance. The cache duration can be configured in the config file. To clear the cache:
+Laratone automatically caches color book and color data to improve performance. The cache works with any Laravel cache driver, including file, database, Redis, and Memcached.
+
+Cache is automatically cleared when:
+- Creating a new color book
+- Adding, updating, or deleting colors
+
+To manually clear the cache:
 
 ```php
 Laratone::clearCache();
 ```
+
+## Upgrading
+
+See [UPGRADE.md](UPGRADE.md) for upgrade instructions between major versions.
 
 ## Testing
 
