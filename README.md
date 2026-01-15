@@ -11,18 +11,18 @@
 [![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3Arun-tests+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
 
-Laratone is a comprehensive Laravel package for managing color libraries and swatches in your applications. It provides an easy-to-use API for storing, retrieving, and managing color data, with built-in support for various color formats (HEX, RGB, CMYK, LAB) and popular color libraries.
+Laratone is a comprehensive Laravel package for managing color libraries and swatches in your applications. It provides an easy-to-use API for storing, retrieving, and managing color data, with built-in support for various color formats (HEX, RGB, CMYK, LAB, OKLCH) and popular color libraries.
 
 ## Features
 
 - Multiple built-in color libraries (Pantone, GuangShun Thread, HC Twill)
-- **Auto-calculation of RGB, CMYK, and LAB from hex values**
+- **Auto-calculation of RGB, CMYK, LAB, and OKLCH from hex values**
 - Configurable white point reference for LAB color calculations
 - Automatic color data caching with configurable TTL
 - Easy color book management and seeding
 - Flexible REST API with filtering, sorting, and pagination
 - Rate-limited API endpoints for security
-- Type-safe color value casting (LAB, RGB, CMYK)
+- Type-safe color value casting (LAB, RGB, CMYK, OKLCH)
 - Full PHP 8.4 support with strict typing throughout
 
 ## Requirements
@@ -75,7 +75,7 @@ return [
 
 ### White Point Options
 
-When RGB, CMYK, or LAB values are not provided, they are automatically calculated from the hex value. LAB calculations require a reference white point (illuminant):
+When RGB, CMYK, LAB, or OKLCH values are not provided, they are automatically calculated from the hex value. LAB calculations require a reference white point (illuminant). OKLCH is a perceptually uniform color space and does not require white point configuration.
 
 | Value | Description | Use Case |
 |-------|-------------|----------|
@@ -126,13 +126,14 @@ Example Color Book format:
       "hex": "FF5500",
       "lab": "88.19,-6.97,111.73",
       "rgb": "254,221,0",
-      "cmyk": "0,1,100,0"
+      "cmyk": "0,1,100,0",
+      "oklch": "0.7206,0.1654,56.72"
     }
   ]
 }
 ```
 
-> **Note:** Only `name` and `hex` are required. RGB, CMYK, and LAB values are optional and will be auto-calculated from hex if not provided. If you have official color values (e.g., Pantone LAB values), include them to use those instead of calculated values.
+> **Note:** Only `name` and `hex` are required. RGB, CMYK, LAB, and OKLCH values are optional and will be auto-calculated from hex if not provided. If you have official color values (e.g., Pantone LAB values), include them to use those instead of calculated values.
 
 ## REST API
 
@@ -272,10 +273,11 @@ use Daikazu\Laratone\Models\Color;
 $color = Color::first();
 
 // Access color values as arrays
-$color->hex;  // 'FF0000' (required, always stored)
-$color->rgb;  // ['r' => 255, 'g' => 0, 'b' => 0] (stored or calculated)
-$color->lab;  // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22] (stored or calculated)
-$color->cmyk; // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0] (stored or calculated)
+$color->hex;   // 'FF0000' (required, always stored)
+$color->rgb;   // ['r' => 255, 'g' => 0, 'b' => 0] (stored or calculated)
+$color->lab;   // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22] (stored or calculated)
+$color->cmyk;  // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0] (stored or calculated)
+$color->oklch; // ['l' => 0.6279, 'c' => 0.2577, 'h' => 29.23] (stored or calculated)
 
 // Access the parent color book
 $colorBook = $color->colorBook;
@@ -284,9 +286,10 @@ $colorBook = $color->colorBook;
 ### Auto-Calculation Behavior
 
 - **Hex is required** - All colors must have a hex value
-- **Other values are optional** - RGB, CMYK, and LAB are calculated from hex if not provided
+- **Other values are optional** - RGB, CMYK, LAB, and OKLCH are calculated from hex if not provided
 - **Stored values take precedence** - If you provide explicit values (e.g., official Pantone LAB), those are used instead of calculated values
 - **LAB uses white point config** - Calculated LAB values use the `white_point` setting from your config
+- **OKLCH is perceptually uniform** - OKLCH does not require white point configuration and provides consistent perceptual color representation
 
 ## Caching
 

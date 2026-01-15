@@ -48,16 +48,17 @@ grep -r "color_book" app/ resources/
 
 ### Step 3: Update Color Value Access
 
-Color values (LAB, RGB, CMYK) are now cast using a custom cast class. The format remains the same, but the underlying implementation has changed.
+Color values (LAB, RGB, CMYK, OKLCH) are now cast using a custom cast class. The format remains the same, but the underlying implementation has changed.
 
 **No changes required** if you're accessing values like this:
 ```php
-$color->rgb;  // ['r' => 255, 'g' => 0, 'b' => 0]
-$color->lab;  // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22]
-$color->cmyk; // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0]
+$color->rgb;   // ['r' => 255, 'g' => 0, 'b' => 0]
+$color->lab;   // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22]
+$color->cmyk;  // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0]
+$color->oklch; // ['l' => 0.6279, 'c' => 0.2577, 'h' => 29.23]
 ```
 
-**New in v5.x:** RGB, CMYK, and LAB values are now automatically calculated from the hex value if not stored. This means you only need to provide hex when creating colors - other values are optional.
+**New in v5.x:** RGB, CMYK, LAB, and OKLCH values are now automatically calculated from the hex value if not stored. This means you only need to provide hex when creating colors - other values are optional.
 
 ### Step 4: Review Deprecated Method Removals
 
@@ -122,10 +123,11 @@ return [
 
 ### New Features in v5.x
 
-- **Auto-Calculation of Color Values**: RGB, CMYK, and LAB values are automatically calculated from hex when not provided
+- **Auto-Calculation of Color Values**: RGB, CMYK, LAB, and OKLCH values are automatically calculated from hex when not provided
+- **OKLCH Color Space**: New perceptually uniform color space support with `$color->oklch` access
 - **Configurable White Point**: New `white_point` config option for LAB color calculations (D50, D55, D65, D75)
-- **ColorConverter Service**: New service class for color space conversions
-- **ColorType Enum**: Type-safe enum for color types (`ColorType::LAB`, `ColorType::RGB`, etc.)
+- **ColorConverter Service**: New service class for color space conversions (including OKLCH)
+- **ColorType Enum**: Type-safe enum for color types (`ColorType::LAB`, `ColorType::RGB`, `ColorType::OKLCH`, etc.)
 - **Custom Color Cast**: `ColorValueCast` for automatic color value parsing
 - **Form Request Validation**: `ColorBookRequest` for validated API inputs
 - **Data Transfer Objects**: `ColorData` and `ColorBookData` for type-safe data handling
