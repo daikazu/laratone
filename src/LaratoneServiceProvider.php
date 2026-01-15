@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Daikazu\Laratone;
 
+use Daikazu\Laratone\Commands\ClearCacheCommand;
 use Daikazu\Laratone\Commands\SeedCommand;
 use Daikazu\Laratone\Http\Middleware\LaratoneMiddleware;
 use Illuminate\Routing\Router;
@@ -18,7 +19,10 @@ final class LaratoneServiceProvider extends PackageServiceProvider
             ->name('laratone')
             ->hasConfigFile()
             ->hasMigrations(['create_color_books_table', 'create_colors_table'])
-            ->hasCommand(SeedCommand::class)
+            ->hasCommands([
+                SeedCommand::class,
+                ClearCacheCommand::class,
+            ])
             ->hasRoutes('api');
     }
 

@@ -369,6 +369,12 @@ Cache is automatically cleared when:
 
 To manually clear the cache:
 
+```bash
+php artisan laratone:clear-cache
+```
+
+Or programmatically:
+
 ```php
 Laratone::clearCache();
 ```
