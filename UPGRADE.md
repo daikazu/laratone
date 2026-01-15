@@ -78,10 +78,10 @@ If you're consuming the Laratone API, be aware of the following changes:
 
 ```http
 # Valid
-GET /api/laratone/colorbook/pantone-solid-coated
+GET /api/laratone/colorbook/solid-coated
 
 # Invalid (will return 404)
-GET /api/laratone/colorbook/Pantone_Solid_Coated
+GET /api/laratone/colorbook/Solid_Coated
 ```
 
 ### Step 6: Clear Application Cache

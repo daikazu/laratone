@@ -154,7 +154,7 @@ test('color uses stored value over calculated when provided', function (): void 
         'name'          => 'Custom Red',
         'color_book_id' => $colorBook->id,
         'hex'           => 'FF0000',
-        // Use custom LAB values (like official Pantone values)
+        // Use custom LAB values (like official Solid Coated values)
         'lab' => '50.0,75.0,60.0',
     ]);
 
@@ -248,7 +248,7 @@ test('does not overwrite explicitly provided values when pre_calculate_colors is
         'name'          => 'Custom Red',
         'color_book_id' => $colorBook->id,
         'hex'           => 'FF0000',
-        'lab'           => '50.0,75.0,60.0', // Custom LAB value (e.g., official Pantone)
+        'lab'           => '50.0,75.0,60.0', // Custom LAB value (e.g., official Solid Coated)
         'oklch'         => '0.5,0.2,30.0',  // Custom OKLCH value
     ]);
 

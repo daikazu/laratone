@@ -43,7 +43,7 @@ return [
      * Benefits of disabling (default):
      * - Smaller database storage
      * - White point changes affect all colors immediately
-     * - Explicit values (like official Pantone LAB) always take precedence
+     * - Explicit values (like official Solid Coated LAB) always take precedence
      */
     'pre_calculate_colors' => false,
 ];

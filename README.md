@@ -15,7 +15,7 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 
 ## Features
 
-- Multiple built-in color libraries (Pantone, GuangShun Thread, HC Twill)
+- Multiple built-in color libraries (Solid Coated, GuangShun Thread, HC Twill)
 - **Auto-calculation of RGB, CMYK, LAB, and OKLCH from hex values**
 - Configurable white point reference for LAB color calculations
 - Automatic color data caching with configurable TTL
@@ -133,7 +133,7 @@ Example Color Book format:
 }
 ```
 
-> **Note:** Only `name` and `hex` are required. RGB, CMYK, LAB, and OKLCH values are optional and will be auto-calculated from hex if not provided. If you have official color values (e.g., Pantone LAB values), include them to use those instead of calculated values.
+> **Note:** Only `name` and `hex` are required. RGB, CMYK, LAB, and OKLCH values are optional and will be auto-calculated from hex if not provided. If you have official color values (e.g., Solid Coated LAB values), include them to use those instead of calculated values.
 
 ## REST API
 
@@ -238,9 +238,9 @@ $color = Laratone::addColorToBook($colorBook, [
 
 // Or with explicit values (these take precedence over calculated values)
 $color = Laratone::addColorToBook($colorBook, [
-    'name' => 'Pantone Red',
+    'name' => 'Solid Coated Red',
     'hex' => 'FF0000',
-    'lab' => '53.23,80.11,67.22',  // Official Pantone LAB value
+    'lab' => '53.23,80.11,67.22',  // Official Solid Coated LAB value
 ]);
 
 // Add multiple colors at once
@@ -287,7 +287,7 @@ $colorBook = $color->colorBook;
 
 - **Hex is required** - All colors must have a hex value
 - **Other values are optional** - RGB, CMYK, LAB, and OKLCH are calculated from hex if not provided
-- **Stored values take precedence** - If you provide explicit values (e.g., official Pantone LAB), those are used instead of calculated values
+- **Stored values take precedence** - If you provide explicit values (e.g., official Solid Coated LAB), those are used instead of calculated values
 - **LAB uses white point config** - Calculated LAB values use the `white_point` setting from your config
 - **OKLCH is perceptually uniform** - OKLCH does not require white point configuration and provides consistent perceptual color representation
 
