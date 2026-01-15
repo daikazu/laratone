@@ -16,6 +16,8 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 ## Features
 
 - Multiple built-in color libraries (Pantone, GuangShun Thread, HC Twill)
+- **Auto-calculation of RGB, CMYK, and LAB from hex values**
+- Configurable white point reference for LAB color calculations
 - Automatic color data caching with configurable TTL
 - Easy color book management and seeding
 - Flexible REST API with filtering, sorting, and pagination
@@ -64,8 +66,23 @@ return [
 
     // Cache duration in seconds for color books and colors
     'cache_time' => 3600,
+
+    // Reference white point for LAB color calculations
+    // Options: 'D50' (print), 'D55', 'D65' (daylight, default), 'D75'
+    'white_point' => 'D65',
 ];
 ```
+
+### White Point Options
+
+When RGB, CMYK, or LAB values are not provided, they are automatically calculated from the hex value. LAB calculations require a reference white point (illuminant):
+
+| Value | Description | Use Case |
+|-------|-------------|----------|
+| `D50` | Warm white (~5000K) | Print/graphic arts |
+| `D55` | Mid-morning daylight (~5500K) | Photography |
+| `D65` | Standard daylight (~6500K) | **Default**, web/screen |
+| `D75` | North sky daylight (~7500K) | Scientific applications |
 
 ## Usage
 
@@ -102,14 +119,20 @@ Example Color Book format:
   "data": [
     {
       "name": "Custom Color 1",
+      "hex": "FEDD00"
+    },
+    {
+      "name": "Custom Color 2",
+      "hex": "FF5500",
       "lab": "88.19,-6.97,111.73",
-      "hex": "FEDD00",
       "rgb": "254,221,0",
       "cmyk": "0,1,100,0"
     }
   ]
 }
 ```
+
+> **Note:** Only `name` and `hex` are required. RGB, CMYK, and LAB values are optional and will be auto-calculated from hex if not provided. If you have official color values (e.g., Pantone LAB values), include them to use those instead of calculated values.
 
 ## REST API
 
@@ -162,13 +185,17 @@ $newColorBook = Laratone::createColorBook('My New Color Book');
 // Create with custom slug
 $newColorBook = Laratone::createColorBook('My Color Book', 'custom-slug');
 
-// Add a single color to a color book
+// Add a single color to a color book (only hex required)
 $color = Laratone::addColorToBook($colorBook, [
     'name' => 'New Color',
     'hex' => 'FF0000',
-    'rgb' => '255,0,0',
-    'lab' => '53.23,80.11,67.22',
-    'cmyk' => '0,100,100,0',
+]);
+
+// Or with explicit values (these take precedence over calculated values)
+$color = Laratone::addColorToBook($colorBook, [
+    'name' => 'Pantone Red',
+    'hex' => 'FF0000',
+    'lab' => '53.23,80.11,67.22',  // Official Pantone LAB value
 ]);
 
 // Add multiple colors at once
@@ -193,7 +220,7 @@ Laratone::clearCache();
 
 ## Working with Color Models
 
-Color values are automatically cast to associative arrays when accessed:
+Color values are automatically cast to associative arrays when accessed. If a value wasn't stored in the database, it will be **automatically calculated from the hex value**:
 
 ```php
 use Daikazu\Laratone\Models\Color;
@@ -201,14 +228,21 @@ use Daikazu\Laratone\Models\Color;
 $color = Color::first();
 
 // Access color values as arrays
-$color->rgb;  // ['r' => 255, 'g' => 0, 'b' => 0]
-$color->lab;  // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22]
-$color->cmyk; // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0]
-$color->hex;  // 'FF0000'
+$color->hex;  // 'FF0000' (required, always stored)
+$color->rgb;  // ['r' => 255, 'g' => 0, 'b' => 0] (stored or calculated)
+$color->lab;  // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22] (stored or calculated)
+$color->cmyk; // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0] (stored or calculated)
 
 // Access the parent color book
 $colorBook = $color->colorBook;
 ```
+
+### Auto-Calculation Behavior
+
+- **Hex is required** - All colors must have a hex value
+- **Other values are optional** - RGB, CMYK, and LAB are calculated from hex if not provided
+- **Stored values take precedence** - If you provide explicit values (e.g., official Pantone LAB), those are used instead of calculated values
+- **LAB uses white point config** - Calculated LAB values use the `white_point` setting from your config
 
 ## Caching
 

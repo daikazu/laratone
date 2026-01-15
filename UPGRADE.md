@@ -57,6 +57,8 @@ $color->lab;  // ['l' => 53.23, 'a' => 80.11, 'b' => 67.22]
 $color->cmyk; // ['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0]
 ```
 
+**New in v5.x:** RGB, CMYK, and LAB values are now automatically calculated from the hex value if not stored. This means you only need to provide hex when creating colors - other values are optional.
+
 ### Step 4: Review Deprecated Method Removals
 
 The following deprecated methods have been removed:
@@ -92,6 +94,22 @@ php artisan config:clear
 php artisan route:clear
 ```
 
+### Step 7: Update Configuration (Optional)
+
+A new `white_point` configuration option has been added for LAB color calculations. If you've published the config, you may want to add it:
+
+```php
+// config/laratone.php
+return [
+    'table_prefix' => 'laratone_',
+    'cache_time' => 3600,
+
+    // NEW: Reference white point for LAB calculations
+    // Options: 'D50' (print), 'D55', 'D65' (default), 'D75'
+    'white_point' => 'D65',
+];
+```
+
 ### Breaking Changes Summary
 
 | Change | Impact | Action Required |
@@ -99,12 +117,16 @@ php artisan route:clear
 | PHP 8.4 required | High | Upgrade PHP |
 | Laravel 12 required | High | Upgrade Laravel |
 | `color_book` → `colorBook` | Medium | Update relationship access |
+| Hex value now required | Medium | Ensure all colors have hex values |
 | Accessor methods removed | Low | Use property access instead |
 | API rate limiting added | Low | May affect high-volume consumers |
 | Slug route validation | Low | Ensure slugs are lowercase |
 
 ### New Features in v5.x
 
+- **Auto-Calculation of Color Values**: RGB, CMYK, and LAB values are automatically calculated from hex when not provided
+- **Configurable White Point**: New `white_point` config option for LAB color calculations (D50, D55, D65, D75)
+- **ColorConverter Service**: New service class for color space conversions
 - **ColorType Enum**: Type-safe enum for color types (`ColorType::LAB`, `ColorType::RGB`, etc.)
 - **Custom Color Cast**: `ColorValueCast` for automatic color value parsing
 - **Form Request Validation**: `ColorBookRequest` for validated API inputs
