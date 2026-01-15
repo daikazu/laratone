@@ -6,7 +6,7 @@ use Daikazu\Laratone\Http\Controllers\LaratoneController;
 use Illuminate\Support\Facades\Route;
 
 Route::prefix('api/laratone')
-    ->middleware(['api', 'throttle:60,1'])
+    ->middleware(['api', 'laratone'])
     ->group(function (): void {
         Route::get('colorbooks', [LaratoneController::class, 'colorbooks'])
             ->name('laratone.colorbooks');

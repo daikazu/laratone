@@ -136,8 +136,6 @@ Example Color Book format:
 
 ## REST API
 
-All API endpoints are rate-limited to 60 requests per minute.
-
 ### Color Books
 
 List all available color books:
@@ -165,6 +163,52 @@ GET /api/laratone/colorbook/{slug}
 | random    | No       | Randomize results (1/true) | false |
 
 > **Note:** When using `random=true`, results are not cached to ensure different results on each request.
+
+### Rate Limiting & Custom Middleware
+
+Laratone routes use a `laratone` middleware alias that does nothing by default. You can replace it with your own middleware to add rate limiting, authentication, or other functionality.
+
+To add rate limiting, define the `laratone` middleware alias in your application's bootstrap:
+
+```php
+// bootstrap/app.php (Laravel 11+)
+->withMiddleware(function (Middleware $middleware) {
+    $middleware->alias([
+        'laratone' => \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1',
+    ]);
+})
+```
+
+Or in a service provider:
+
+```php
+// app/Providers/AppServiceProvider.php
+use Illuminate\Routing\Router;
+
+public function boot(Router $router): void
+{
+    $router->aliasMiddleware('laratone', \App\Http\Middleware\YourCustomMiddleware::class);
+}
+```
+
+You can create a custom middleware class that combines multiple behaviors:
+
+```php
+// app/Http/Middleware/LaratoneApiMiddleware.php
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Routing\Middleware\ThrottleRequests;
+
+class LaratoneApiMiddleware extends ThrottleRequests
+{
+    public function handle($request, Closure $next, $maxAttempts = 60, $decayMinutes = 1, $prefix = '')
+    {
+        // Add custom logic here (authentication, logging, etc.)
+        return parent::handle($request, $next, $maxAttempts, $decayMinutes, $prefix);
+    }
+}
+```
 
 ## Programmatic Usage
 

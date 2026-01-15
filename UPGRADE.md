@@ -73,8 +73,7 @@ The following deprecated methods have been removed:
 
 If you're consuming the Laratone API, be aware of the following changes:
 
-1. **Rate Limiting**: API endpoints are now rate-limited to 60 requests per minute
-2. **Slug Validation**: The `{slug}` parameter now only accepts lowercase letters, numbers, and hyphens
+**Slug Validation**: The `{slug}` parameter now only accepts lowercase letters, numbers, and hyphens.
 
 ```http
 # Valid
@@ -119,7 +118,6 @@ return [
 | `color_book` → `colorBook` | Medium | Update relationship access |
 | Hex value now required | Medium | Ensure all colors have hex values |
 | Accessor methods removed | Low | Use property access instead |
-| API rate limiting added | Low | May affect high-volume consumers |
 | Slug route validation | Low | Ensure slugs are lowercase |
 
 ### New Features in v5.x
