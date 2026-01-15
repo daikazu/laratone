@@ -14,4 +14,8 @@ Route::prefix('api/laratone')
         Route::get('colorbook/{slug}', [LaratoneController::class, 'colorbook'])
             ->where('slug', '[a-z0-9-]+')
             ->name('laratone.colorbook');
+
+        Route::get('colorbook/{slug}/find-closest', [LaratoneController::class, 'findClosest'])
+            ->where('slug', '[a-z0-9-]+')
+            ->name('laratone.colorbook.find-closest');
     });

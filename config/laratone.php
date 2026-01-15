@@ -46,4 +46,21 @@ return [
      * - Explicit values (like official Solid Coated LAB) always take precedence
      */
     'pre_calculate_colors' => false,
+
+    /**
+     * Default algorithm for finding closest colors.
+     *
+     * Options:
+     * - 'lab' : CIE76 Delta E in LAB color space (default, industry standard)
+     * - 'oklch' : Distance in OKLCH color space (more perceptually uniform)
+     */
+    'default_match_algorithm' => 'lab',
+
+    /**
+     * Maximum number of closest color matches that can be requested.
+     *
+     * This limits the 'limit' parameter in the find-closest API endpoint
+     * to prevent excessive resource usage.
+     */
+    'max_match_limit' => 100,
 ];

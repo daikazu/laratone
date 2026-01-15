@@ -6,6 +6,7 @@ namespace Daikazu\Laratone;
 
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
+use Daikazu\Laratone\Services\ColorMatcher;
 use Illuminate\Cache\TaggableStore;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
@@ -67,6 +68,13 @@ final class Laratone
     public function clearCache(): void
     {
         Cache::forget('laratone.color_books');
+
+        // Clear individual color book caches
+        $colorBooks = ColorBook::all();
+        foreach ($colorBooks as $colorBook) {
+            Cache::forget("laratone.color_book.{$colorBook->slug}");
+            Cache::forget("laratone.color_book.{$colorBook->slug}.colors");
+        }
 
         if ($this->cacheDriverSupportsTags()) {
             Cache::tags(['laratone'])->flush();
@@ -145,6 +153,31 @@ final class Laratone
             key: "laratone.color_book.{$colorBook->slug}.colors",
             ttl: $this->cacheTime(),
             callback: fn () => $colorBook->colors()->get()
+        );
+    }
+
+    /**
+     * Find the closest matching colors from a color book.
+     *
+     * @param  ColorBook  $colorBook  The color book to search within
+     * @param  string  $targetHex  The target color as a 6-character hex code
+     * @param  int  $limit  Maximum number of matches to return (default: 1)
+     * @param  string  $algorithm  Distance algorithm: 'lab' or 'oklch' (default: 'lab')
+     * @return \Illuminate\Support\Collection<int, Color> Colors sorted by distance (closest first), with 'distance' attribute
+     */
+    public function findClosestColors(
+        ColorBook $colorBook,
+        string $targetHex,
+        int $limit = 1,
+        string $algorithm = ColorMatcher::ALGORITHM_LAB
+    ): \Illuminate\Support\Collection {
+        $colors = $this->getColorsFromBook($colorBook);
+
+        return app(ColorMatcher::class)->findClosest(
+            targetHex: $targetHex,
+            colors: $colors,
+            limit: $limit,
+            algorithm: $algorithm
         );
     }
 

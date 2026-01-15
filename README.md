@@ -17,11 +17,11 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 
 - Multiple built-in color libraries (Solid Coated, GuangShun Thread, HC Twill)
 - **Auto-calculation of RGB, CMYK, LAB, and OKLCH from hex values**
+- **Find closest matching colors** using LAB or OKLCH distance algorithms
 - Configurable white point reference for LAB color calculations
 - Automatic color data caching with configurable TTL
 - Easy color book management and seeding
 - Flexible REST API with filtering, sorting, and pagination
-- Rate-limited API endpoints for security
 - Type-safe color value casting (LAB, RGB, CMYK, OKLCH)
 - Full PHP 8.4 support with strict typing throughout
 
@@ -70,6 +70,12 @@ return [
     // Reference white point for LAB color calculations
     // Options: 'D50' (print), 'D55', 'D65' (daylight, default), 'D75'
     'white_point' => 'D65',
+
+    // Default algorithm for finding closest colors: 'lab' or 'oklch'
+    'default_match_algorithm' => 'lab',
+
+    // Maximum number of colors that can be returned by find-closest
+    'max_match_limit' => 100,
 ];
 ```
 
@@ -165,6 +171,51 @@ GET /api/laratone/colorbook/{slug}
 
 > **Note:** When using `random=true`, results are not cached to ensure different results on each request.
 
+### Find Closest Colors
+
+Find the closest matching colors in a color book to a target color:
+
+```http
+GET /api/laratone/colorbook/{slug}/find-closest
+```
+
+| Parameter | Required | Description | Default |
+|-----------|:--------:|-------------|:-------:|
+| hex       | Yes      | Target color (6-char hex, with or without #) | - |
+| limit     | No       | Number of closest colors to return | 1 |
+| algorithm | No       | Distance algorithm: `lab` or `oklch` | lab |
+
+**Example Request:**
+```http
+GET /api/laratone/colorbook/color-book-plus-solid-coated/find-closest?hex=FF5500&limit=3&algorithm=lab
+```
+
+**Example Response:**
+```json
+{
+  "target_hex": "FF5500",
+  "algorithm": "lab",
+  "matches": [
+    {
+      "name": "Orange 021 C",
+      "hex": "FE5000",
+      "distance": 1.2345,
+      "rgb": {"r": 254, "g": 80, "b": 0},
+      "cmyk": {"c": 0, "m": 69, "y": 100, "k": 0},
+      "lab": {"l": 57.29, "a": 67.22, "b": 68.88},
+      "oklch": {"l": 0.6279, "c": 0.2577, "h": 29.23}
+    }
+  ]
+}
+```
+
+#### Distance Algorithms
+
+| Algorithm | Description | Best For |
+|-----------|-------------|----------|
+| `lab` | CIE76 Delta E in LAB color space | General color matching, industry standard |
+| `oklch` | Perceptually uniform cylindrical distance | Modern applications, consistent perception |
+
 ### Rate Limiting & Custom Middleware
 
 Laratone routes use a `laratone` middleware alias that does nothing by default. You can replace it with your own middleware to add rate limiting, authentication, or other functionality.
@@ -258,6 +309,23 @@ Laratone::updateColor($color, ['name' => 'Updated Color Name']);
 
 // Delete a color
 Laratone::deleteColor($color);
+
+// Find closest matching colors to a target hex
+$closest = Laratone::findClosestColors($colorBook, 'FF5500');
+// Returns the single closest color by default
+
+// Find multiple closest colors with specific algorithm
+$closest = Laratone::findClosestColors(
+    colorBook: $colorBook,
+    targetHex: 'FF5500',
+    limit: 5,
+    algorithm: 'oklch'  // or 'lab' (default)
+);
+
+// Each result includes a distance value
+foreach ($closest as $color) {
+    echo "{$color->name}: {$color->distance}";
+}
 
 // Clear cache manually
 Laratone::clearCache();
