@@ -63,7 +63,9 @@
         "analyse": "vendor/bin/phpstan analyse",
         "test": "vendor/bin/pest",
         "test-coverage": "vendor/bin/pest --coverage",
-        "format": "vendor/bin/pint"
+        "format": "vendor/bin/pint",
+        "rector": "vendor/bin/rector process",
+        "rector-dry": "vendor/bin/rector process --dry-run"
     },
     "config": {
         "sort-packages": true,

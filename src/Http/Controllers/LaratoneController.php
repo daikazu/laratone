@@ -33,7 +33,7 @@ final class LaratoneController extends Controller
             $colorBook = Cache::remember(
                 $cacheKey,
                 $this->cacheTime(),
-                fn () => $this->fetchColorBook($slug, $request)
+                fn (): ?array => $this->fetchColorBook($slug, $request)
             );
         }
 
