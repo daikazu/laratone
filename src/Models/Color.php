@@ -12,6 +12,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * Color model with automatic color space calculations.
+ *
+ * When rgb, cmyk, or lab attributes are null, they are automatically calculated
+ * from the hex value on access. Stored values always take precedence.
+ *
+ * Note: This model uses app(ColorConverter::class) for color calculations.
+ * This creates a service container dependency, which is acceptable here because:
+ * - Calculations only occur when accessing null attributes
+ * - The ColorConverter is a stateless service with no side effects
+ * - Dependency injection isn't practical for Eloquent attribute accessors
+ *
  * @property int $id
  * @property int $color_book_id
  * @property string $name
@@ -37,6 +48,59 @@ class Color extends Model
         parent::__construct($attributes);
         $prefix = config('laratone.table_prefix');
         $this->table = (is_string($prefix) ? $prefix : '') . $this->table;
+    }
+
+    /**
+     * Bootstrap the model and register event listeners.
+     */
+    protected static function booted(): void
+    {
+        static::creating(function (Color $color): void {
+            $color->fillCalculatedValuesIfEnabled();
+        });
+
+        static::updating(function (Color $color): void {
+            // Recalculate if hex changed and auto-persist is enabled
+            if ($color->isDirty('hex')) {
+                $color->fillCalculatedValuesIfEnabled();
+            }
+        });
+    }
+
+    /**
+     * Fill in calculated color values if pre_calculate_colors is enabled and values are null.
+     */
+    protected function fillCalculatedValuesIfEnabled(): void
+    {
+        $preCalculate = config('laratone.pre_calculate_colors', false);
+
+        if (! $preCalculate) {
+            return;
+        }
+
+        $hex = $this->attributes['hex'] ?? null;
+
+        if (! is_string($hex) || $hex === '') {
+            return;
+        }
+
+        $calculated = self::calculateAllFromHex($hex);
+
+        // Only fill values that are not already set (null or empty)
+        $rgb = $this->attributes['rgb'] ?? null;
+        if ($rgb === null || $rgb === '') {
+            $this->attributes['rgb'] = implode(',', $calculated['rgb']);
+        }
+
+        $cmyk = $this->attributes['cmyk'] ?? null;
+        if ($cmyk === null || $cmyk === '') {
+            $this->attributes['cmyk'] = implode(',', $calculated['cmyk']);
+        }
+
+        $lab = $this->attributes['lab'] ?? null;
+        if ($lab === null || $lab === '') {
+            $this->attributes['lab'] = implode(',', $calculated['lab']);
+        }
     }
 
     /**
@@ -66,7 +130,8 @@ class Color extends Model
             return $value;
         }
 
-        // Get raw hex value without going through this method again
+        // Use getAttributes() directly to avoid infinite recursion.
+        // Accessing $this->hex would call getAttribute() again.
         $hex = $this->getAttributes()['hex'] ?? null;
 
         // Can't calculate without hex
@@ -116,6 +181,28 @@ class Color extends Model
         $whitePoint = config('laratone.white_point', 'D65');
 
         return app(ColorConverter::class)->rgbToLab($rgb, is_string($whitePoint) ? $whitePoint : 'D65');
+    }
+
+    /**
+     * Calculate all color values from a hex code.
+     *
+     * Useful for pre-calculating values before saving to avoid lazy calculation overhead.
+     *
+     * @return array{rgb: array{r: int, g: int, b: int}, cmyk: array{c: int, m: int, y: int, k: int}, lab: array{l: float, a: float, b: float}}
+     */
+    public static function calculateAllFromHex(string $hex, ?string $whitePoint = null): array
+    {
+        $converter = app(ColorConverter::class);
+        $whitePoint ??= config('laratone.white_point', 'D65');
+        $whitePoint = is_string($whitePoint) ? $whitePoint : 'D65';
+
+        $rgb = $converter->hexToRgb($hex);
+
+        return [
+            'rgb'  => $rgb,
+            'cmyk' => $converter->rgbToCmyk($rgb),
+            'lab'  => $converter->rgbToLab($rgb, $whitePoint),
+        ];
     }
 
     /**

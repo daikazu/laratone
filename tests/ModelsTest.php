@@ -162,3 +162,104 @@ test('color with only hex can return all color formats', function (): void {
         ->and($color->lab)->toBeArray()
         ->and($color->lab)->toHaveKeys(['l', 'a', 'b']);
 });
+
+test('calculateAllFromHex returns all color formats from hex', function (): void {
+    $values = Color::calculateAllFromHex('FF5500');
+
+    expect($values)->toHaveKeys(['rgb', 'cmyk', 'lab'])
+        ->and($values['rgb'])->toBe(['r' => 255, 'g' => 85, 'b' => 0])
+        ->and($values['cmyk']['c'])->toBe(0)
+        ->and($values['cmyk']['k'])->toBe(0)
+        ->and($values['lab'])->toHaveKeys(['l', 'a', 'b']);
+});
+
+test('calculateAllFromHex accepts custom white point', function (): void {
+    $valuesD65 = Color::calculateAllFromHex('FF5500', 'D65');
+    $valuesD50 = Color::calculateAllFromHex('FF5500', 'D50');
+
+    // LAB values should differ between white points
+    expect($valuesD65['lab'])->not->toBe($valuesD50['lab']);
+});
+
+// Auto-persist Tests
+
+test('does not persist calculated values when pre_calculate_colors is disabled', function (): void {
+    config(['laratone.pre_calculate_colors' => false]);
+
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+    ]);
+
+    // Refresh from database to check actual stored values
+    $color->refresh();
+
+    // Raw database values should be null
+    expect($color->getAttributes()['rgb'])->toBeNull()
+        ->and($color->getAttributes()['cmyk'])->toBeNull()
+        ->and($color->getAttributes()['lab'])->toBeNull();
+});
+
+test('persists calculated values when pre_calculate_colors is enabled', function (): void {
+    config(['laratone.pre_calculate_colors' => true]);
+
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+    ]);
+
+    // Refresh from database to check actual stored values
+    $color->refresh();
+
+    // Raw database values should be populated
+    expect($color->getAttributes()['rgb'])->toBe('255,0,0')
+        ->and($color->getAttributes()['cmyk'])->toBe('0,100,100,0')
+        ->and($color->getAttributes()['lab'])->not->toBeNull();
+});
+
+test('does not overwrite explicitly provided values when pre_calculate_colors is enabled', function (): void {
+    config(['laratone.pre_calculate_colors' => true]);
+
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Custom Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+        'lab'           => '50.0,75.0,60.0', // Custom LAB value (e.g., official Pantone)
+    ]);
+
+    $color->refresh();
+
+    // Custom LAB should be preserved, not overwritten
+    expect($color->getAttributes()['lab'])->toBe('50.0,75.0,60.0')
+        // But RGB and CMYK should be calculated
+        ->and($color->getAttributes()['rgb'])->toBe('255,0,0')
+        ->and($color->getAttributes()['cmyk'])->toBe('0,100,100,0');
+});
+
+test('recalculates values when hex changes and pre_calculate_colors is enabled', function (): void {
+    config(['laratone.pre_calculate_colors' => true]);
+
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+    ]);
+
+    // Change hex to green
+    $color->hex = '00FF00';
+    $color->rgb = null; // Clear to allow recalculation
+    $color->cmyk = null;
+    $color->lab = null;
+    $color->save();
+
+    $color->refresh();
+
+    // Should have green values now
+    expect($color->getAttributes()['rgb'])->toBe('0,255,0');
+});
