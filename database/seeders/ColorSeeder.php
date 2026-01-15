@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daikazu\Laratone\Database\Seeders;
 
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Str;
 
-class ColorSeeder extends Seeder
+final class ColorSeeder extends Seeder
 {
     public function run(): void
     {
-        // Create a few themed color books
         $colorBooks = [
             [
                 'name'   => 'Autumn Palette',
@@ -47,11 +49,10 @@ class ColorSeeder extends Seeder
         foreach ($colorBooks as $colorBookData) {
             $colorBook = ColorBook::create([
                 'name' => $colorBookData['name'],
-                'slug' => \Illuminate\Support\Str::slug($colorBookData['name']),
+                'slug' => Str::slug($colorBookData['name']),
             ]);
 
             foreach ($colorBookData['colors'] as $colorData) {
-                // Convert hex to RGB
                 $rgb = $this->hexToRgb($colorData['hex']);
 
                 Color::create([
@@ -66,21 +67,25 @@ class ColorSeeder extends Seeder
         }
     }
 
+    /**
+     * @return array<int, int>
+     */
     private function hexToRgb(string $hex): array
     {
         $hex = ltrim($hex, '#');
 
         return [
-            hexdec(substr($hex, 0, 2)),
-            hexdec(substr($hex, 2, 2)),
-            hexdec(substr($hex, 4, 2)),
+            (int) hexdec(substr($hex, 0, 2)),
+            (int) hexdec(substr($hex, 2, 2)),
+            (int) hexdec(substr($hex, 4, 2)),
         ];
     }
 
+    /**
+     * @param  array<int, int>  $rgb
+     */
     private function rgbToLab(array $rgb): string
     {
-        // Simple conversion for testing purposes
-        // In a real application, you'd want to use a proper color conversion library
         $r = $rgb[0] / 255;
         $g = $rgb[1] / 255;
         $b = $rgb[2] / 255;
@@ -92,14 +97,21 @@ class ColorSeeder extends Seeder
         return sprintf('%.2f,%.2f,%.2f', $x * 100, $y * 100, $z * 100);
     }
 
+    /**
+     * @param  array<int, int>  $rgb
+     */
     private function rgbToCmyk(array $rgb): string
     {
-        // Simple conversion for testing purposes
         $r = $rgb[0] / 255;
         $g = $rgb[1] / 255;
         $b = $rgb[2] / 255;
 
         $k = 1 - max($r, $g, $b);
+
+        if ($k === 1.0) {
+            return '0.00,0.00,0.00,100.00';
+        }
+
         $c = (1 - $r - $k) / (1 - $k);
         $m = (1 - $g - $k) / (1 - $k);
         $y = (1 - $b - $k) / (1 - $k);

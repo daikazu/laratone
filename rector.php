@@ -3,15 +3,22 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
+use Rector\Php83\Rector\ClassMethod\AddOverrideAttributeToOverriddenMethodsRector;
 
 return RectorConfig::configure()
     ->withPaths([
         __DIR__ . '/config',
         __DIR__ . '/src',
-        __DIR__ . '/tests',
     ])
-    // uncomment to reach your current PHP version
-    ->withPhpSets(php83: true)
-    ->withTypeCoverageLevel(10)
-    ->withDeadCodeLevel(10)
-    ->withCodeQualityLevel(10);
+    ->withSkip([
+        // Skip adding #[Override] attribute - can be noisy and is optional
+        AddOverrideAttributeToOverriddenMethodsRector::class,
+    ])
+    ->withPreparedSets(
+        deadCode: true,
+        codeQuality: true,
+        typeDeclarations: true,
+        privatization: true,
+        earlyReturn: true,
+    )
+    ->withPhpSets();

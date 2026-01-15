@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daikazu\Laratone\Faker;
 
 use Faker\Provider\Base;
 
-class ColorFakerProvider extends Base
+final class ColorFakerProvider extends Base
 {
     public function labColor(): string
     {
@@ -23,5 +25,14 @@ class ColorFakerProvider extends Base
         $k = mt_rand(0, 100);
 
         return "{$c},{$m},{$y},{$k}";
+    }
+
+    public function oklchColor(): string
+    {
+        $l = round(mt_rand(0, 100) / 100, 4);
+        $c = round(mt_rand(0, 37) / 100, 4);
+        $h = round(mt_rand(0, 36000) / 100, 2);
+
+        return "{$l},{$c},{$h}";
     }
 }

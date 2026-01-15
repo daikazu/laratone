@@ -1,14 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daikazu\Laratone;
 
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
+use Daikazu\Laratone\Services\ColorMatcher;
+use Illuminate\Cache\TaggableStore;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
-class Laratone
+final class Laratone
 {
     /**
      * Get all color books with their associated colors.
@@ -17,7 +21,8 @@ class Laratone
      */
     public function colorBooks(): Collection
     {
-        return Cache::remember('laratone.color_books', config('laratone.cache_time'), fn () => ColorBook::with('colors')->get());
+        /** @var Collection<int, ColorBook> */
+        return Cache::remember('laratone.color_books', $this->cacheTime(), fn () => ColorBook::with('colors')->get());
     }
 
     /**
@@ -28,9 +33,10 @@ class Laratone
      */
     public function colorBookBySlug(string $colorBookSlug): ?ColorBook
     {
+        /** @var ColorBook|null */
         return Cache::remember(
             key: "laratone.color_book.{$colorBookSlug}",
-            ttl: config('laratone.cache_time'),
+            ttl: $this->cacheTime(),
             callback: fn () => ColorBook::slug($colorBookSlug)->first()
         );
     }
@@ -62,14 +68,24 @@ class Laratone
     public function clearCache(): void
     {
         Cache::forget('laratone.color_books');
-        Cache::tags(['laratone'])->flush();
+
+        // Clear individual color book caches
+        $colorBooks = ColorBook::all();
+        foreach ($colorBooks as $colorBook) {
+            Cache::forget("laratone.color_book.{$colorBook->slug}");
+            Cache::forget("laratone.color_book.{$colorBook->slug}.colors");
+        }
+
+        if ($this->cacheDriverSupportsTags()) {
+            Cache::tags(['laratone'])->flush();
+        }
     }
 
     /**
      * Add a color to a color book.
      *
      * @param  ColorBook  $colorBook  The color book to add the color to
-     * @param  array  $colorData  The color data to add
+     * @param  array<string, mixed>  $colorData  The color data to add
      * @return Color The newly created color
      */
     public function addColorToBook(ColorBook $colorBook, array $colorData): Color
@@ -84,7 +100,7 @@ class Laratone
      * Add multiple colors to a color book.
      *
      * @param  ColorBook  $colorBook  The color book to add the colors to
-     * @param  array  $colorsData  Array of color data arrays
+     * @param  array<int, array<string, mixed>>  $colorsData  Array of color data arrays
      * @return Collection<int, Color> The newly created colors
      */
     public function addColorsToBook(ColorBook $colorBook, array $colorsData): Collection
@@ -99,7 +115,7 @@ class Laratone
      * Update a color in a color book.
      *
      * @param  Color  $color  The color to update
-     * @param  array  $colorData  The new color data
+     * @param  array<string, mixed>  $colorData  The new color data
      * @return bool Whether the update was successful
      */
     public function updateColor(Color $color, array $colorData): bool
@@ -121,7 +137,7 @@ class Laratone
         $result = $color->delete();
         $this->clearCache();
 
-        return $result;
+        return (bool) $result;
     }
 
     /**
@@ -132,10 +148,54 @@ class Laratone
      */
     public function getColorsFromBook(ColorBook $colorBook): Collection
     {
+        /** @var Collection<int, Color> */
         return Cache::remember(
             key: "laratone.color_book.{$colorBook->slug}.colors",
-            ttl: config('laratone.cache_time'),
+            ttl: $this->cacheTime(),
             callback: fn () => $colorBook->colors()->get()
         );
+    }
+
+    /**
+     * Find the closest matching colors from a color book.
+     *
+     * @param  ColorBook  $colorBook  The color book to search within
+     * @param  string  $targetHex  The target color as a 6-character hex code
+     * @param  int  $limit  Maximum number of matches to return (default: 1)
+     * @param  string  $algorithm  Distance algorithm: 'lab' or 'oklch' (default: 'lab')
+     * @return \Illuminate\Support\Collection<int, Color> Colors sorted by distance (closest first), with 'distance' attribute
+     */
+    public function findClosestColors(
+        ColorBook $colorBook,
+        string $targetHex,
+        int $limit = 1,
+        string $algorithm = ColorMatcher::ALGORITHM_LAB
+    ): \Illuminate\Support\Collection {
+        $colors = $this->getColorsFromBook($colorBook);
+
+        return app(ColorMatcher::class)->findClosest(
+            targetHex: $targetHex,
+            colors: $colors,
+            limit: $limit,
+            algorithm: $algorithm
+        );
+    }
+
+    /**
+     * Get the configured cache time.
+     */
+    private function cacheTime(): int
+    {
+        $time = config('laratone.cache_time', 3600);
+
+        return is_numeric($time) ? (int) $time : 3600;
+    }
+
+    /**
+     * Check if the current cache driver supports tags.
+     */
+    private function cacheDriverSupportsTags(): bool
+    {
+        return Cache::getStore() instanceof TaggableStore;
     }
 }

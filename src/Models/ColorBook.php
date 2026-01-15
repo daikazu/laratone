@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Daikazu\Laratone\Models;
 
 use Carbon\Carbon;
@@ -15,27 +17,29 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property Carbon $created_at
  * @property Carbon $updated_at
  *
- * @method static slug(string $slug)
+ * @method static Builder<ColorBook> slug(string $slug)
  */
 class ColorBook extends Model
 {
     use HasFactory;
 
     protected $table = 'color_books';
+
     protected $fillable = ['name', 'slug'];
-    protected $guarded = ['id'];
-    protected $hidden = ['id', 'color_book_id', 'created_at', 'updated_at'];
+
+    protected $hidden = ['id', 'created_at', 'updated_at'];
 
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->table = config('laratone.table_prefix') . $this->table;
+        $prefix = config('laratone.table_prefix');
+        $this->table = (is_string($prefix) ? $prefix : '') . $this->table;
     }
 
     /**
      * Get the colors associated with the color book.
      *
-     * @return HasMany<Color>
+     * @return HasMany<Color, $this>
      */
     public function colors(): HasMany
     {
@@ -45,9 +49,10 @@ class ColorBook extends Model
     /**
      * Scope a query to only include color books with a specific slug.
      *
-     * @param  Builder  $query
+     * @param  Builder<ColorBook>  $query
+     * @return Builder<ColorBook>
      */
-    public function scopeSlug($query, ?string $slug): Builder
+    public function scopeSlug(Builder $query, ?string $slug): Builder
     {
         return $query->where('slug', $slug);
     }
