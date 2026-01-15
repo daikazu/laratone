@@ -20,6 +20,7 @@ final class Laratone
      */
     public function colorBooks(): Collection
     {
+        /** @var Collection<int, ColorBook> */
         return Cache::remember('laratone.color_books', $this->cacheTime(), fn () => ColorBook::with('colors')->get());
     }
 
@@ -31,6 +32,7 @@ final class Laratone
      */
     public function colorBookBySlug(string $colorBookSlug): ?ColorBook
     {
+        /** @var ColorBook|null */
         return Cache::remember(
             key: "laratone.color_book.{$colorBookSlug}",
             ttl: $this->cacheTime(),
@@ -138,6 +140,7 @@ final class Laratone
      */
     public function getColorsFromBook(ColorBook $colorBook): Collection
     {
+        /** @var Collection<int, Color> */
         return Cache::remember(
             key: "laratone.color_book.{$colorBook->slug}.colors",
             ttl: $this->cacheTime(),
@@ -150,7 +153,9 @@ final class Laratone
      */
     private function cacheTime(): int
     {
-        return (int) config('laratone.cache_time', 3600);
+        $time = config('laratone.cache_time', 3600);
+
+        return is_numeric($time) ? (int) $time : 3600;
     }
 
     /**

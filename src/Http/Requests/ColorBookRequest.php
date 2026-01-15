@@ -47,12 +47,14 @@ final class ColorBookRequest extends FormRequest
     {
         $limit = $this->validated('limit');
 
-        return $limit !== null ? (int) $limit : null;
+        return is_numeric($limit) ? (int) $limit : null;
     }
 
     public function sortDirection(): ?string
     {
-        return $this->validated('sort');
+        $sort = $this->validated('sort');
+
+        return is_string($sort) ? $sort : null;
     }
 
     public function isRandom(): bool

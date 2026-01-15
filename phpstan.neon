@@ -1,0 +1,12 @@
+parameters:
+    level: 9
+
+    paths:
+        - src
+        - config
+
+    tmpDir: build/phpstan
+
+    ignoreErrors:
+        # Laravel HasFactory generic type - not worth specifying for simple models
+        - identifier: missingType.generics

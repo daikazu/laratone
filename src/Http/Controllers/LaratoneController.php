@@ -28,7 +28,7 @@ final class LaratoneController extends Controller
         if ($isRandom) {
             $colorBook = $this->fetchColorBook($slug, $request);
         } else {
-            $cacheKey = "colorbook:{$slug}:" . md5(json_encode($request->validated()));
+            $cacheKey = "colorbook:{$slug}:" . md5((string) json_encode($request->validated()));
 
             $colorBook = Cache::remember(
                 $cacheKey,
@@ -57,7 +57,7 @@ final class LaratoneController extends Controller
             'sort' => ['nullable', Rule::in(['asc', 'desc'])],
         ]);
 
-        $cacheKey = 'colorbooks:' . md5(json_encode($validated));
+        $cacheKey = 'colorbooks:' . md5((string) json_encode($validated));
 
         $colorBooks = Cache::remember($cacheKey, $this->cacheTime(), function () use ($validated) {
             $query = ColorBook::select('name', 'slug');
@@ -105,6 +105,8 @@ final class LaratoneController extends Controller
      */
     private function cacheTime(): int
     {
-        return (int) config('laratone.cache_time', 3600);
+        $time = config('laratone.cache_time', 3600);
+
+        return is_numeric($time) ? (int) $time : 3600;
     }
 }

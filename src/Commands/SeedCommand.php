@@ -25,15 +25,17 @@ final class SeedCommand extends Command
     {
         try {
             $file = $this->option('file');
+            $fileStr = is_string($file) ? $file : null;
             // Support both absolute paths and paths relative to base_path
-            $filePath = $file !== null
-                ? (str_starts_with((string) $file, '/') ? (string) $file : base_path((string) $file))
+            $filePath = $fileStr !== null
+                ? (str_starts_with($fileStr, '/') ? $fileStr : base_path($fileStr))
                 : null;
 
             if ($filePath === null) {
                 $name = $this->argument('name');
-                if ($name !== null) {
-                    $data = $this->loadColorBookFile((string) $name, byName: true);
+                $nameStr = is_string($name) ? $name : null;
+                if ($nameStr !== null) {
+                    $data = $this->loadColorBookFile($nameStr, byName: true);
                     $colorBookData = $this->validateAndTransform($data);
                     $this->seed($colorBookData);
                 } else {
@@ -94,7 +96,13 @@ final class SeedCommand extends Command
             throw new Exception("Could not read file: {$filePath}");
         }
 
-        return json_decode($content, false, 512, JSON_THROW_ON_ERROR);
+        $decoded = json_decode($content, false, 512, JSON_THROW_ON_ERROR);
+
+        if (! $decoded instanceof stdClass) {
+            throw new Exception("Invalid JSON structure in file: {$filePath}");
+        }
+
+        return $decoded;
     }
 
     private function validateAndTransform(stdClass $data): ColorBookData
@@ -109,11 +117,15 @@ final class SeedCommand extends Command
 
         $colors = [];
         foreach ($data->data as $index => $color) {
-            if (! isset($color->name) || trim($color->name) === '') {
+            if (! $color instanceof stdClass) {
+                throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Expected object");
+            }
+
+            if (! isset($color->name) || ! is_string($color->name) || trim($color->name) === '') {
                 throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Name is required");
             }
 
-            if (! isset($color->hex) || trim($color->hex) === '') {
+            if (! isset($color->hex) || ! is_string($color->hex) || trim($color->hex) === '') {
                 throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Hex value is required");
             }
 

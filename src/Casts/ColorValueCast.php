@@ -51,6 +51,10 @@ final readonly class ColorValueCast implements CastsAttributes
             return null;
         }
 
+        if (! is_scalar($value)) {
+            return null;
+        }
+
         $values = explode(',', (string) $value);
 
         if (count($values) !== count($this->keys)) {
@@ -66,6 +70,7 @@ final readonly class ColorValueCast implements CastsAttributes
     }
 
     /**
+     * @param  array<string, int|float>|string|null  $value
      * @param  array<string, mixed>  $attributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): ?string
