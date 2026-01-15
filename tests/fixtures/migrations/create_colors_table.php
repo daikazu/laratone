@@ -27,8 +27,8 @@ return new class extends Migration
                 ->constrained($this->colorBookTableName)
                 ->cascadeOnDelete();
             $table->string('name');
+            $table->string('hex');
             $table->string('lab')->nullable();
-            $table->string('hex')->nullable();
             $table->string('rgb')->nullable();
             $table->string('cmyk')->nullable();
             $table->timestamps();

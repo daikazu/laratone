@@ -32,7 +32,8 @@ class ColorBook extends Model
     public function __construct(array $attributes = [])
     {
         parent::__construct($attributes);
-        $this->table = config('laratone.table_prefix') . $this->table;
+        $prefix = config('laratone.table_prefix');
+        $this->table = (is_string($prefix) ? $prefix : '') . $this->table;
     }
 
     /**

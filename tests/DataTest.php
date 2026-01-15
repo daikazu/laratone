@@ -23,14 +23,15 @@ test('color data can be constructed', function (): void {
         ->and($colorData->cmyk)->toBe('0,100,100,0');
 });
 
-test('color data allows null values', function (): void {
+test('color data allows null values for optional fields', function (): void {
     $colorData = new ColorData(
         name: 'Test Color',
+        hex: 'FF0000',
     );
 
     expect($colorData->name)->toBe('Test Color')
+        ->and($colorData->hex)->toBe('FF0000')
         ->and($colorData->lab)->toBeNull()
-        ->and($colorData->hex)->toBeNull()
         ->and($colorData->rgb)->toBeNull()
         ->and($colorData->cmyk)->toBeNull();
 });
@@ -53,18 +54,31 @@ test('color data can be created from json', function (): void {
         ->and($colorData->cmyk)->toBe('0,100,100,0');
 });
 
-test('color data from json handles missing values', function (): void {
+test('color data from json handles missing optional values', function (): void {
+    $json = (object) [
+        'name' => 'Test Color',
+        'hex'  => 'FF0000',
+    ];
+
+    $colorData = ColorData::fromJson($json);
+
+    expect($colorData->name)->toBe('Test Color')
+        ->and($colorData->hex)->toBe('FF0000')
+        ->and($colorData->lab)->toBeNull()
+        ->and($colorData->rgb)->toBeNull()
+        ->and($colorData->cmyk)->toBeNull();
+});
+
+test('color data from json defaults hex to empty string when missing', function (): void {
     $json = (object) [
         'name' => 'Test Color',
     ];
 
     $colorData = ColorData::fromJson($json);
 
+    // Hex defaults to empty string when missing (validation happens in SeedCommand)
     expect($colorData->name)->toBe('Test Color')
-        ->and($colorData->lab)->toBeNull()
-        ->and($colorData->hex)->toBeNull()
-        ->and($colorData->rgb)->toBeNull()
-        ->and($colorData->cmyk)->toBeNull();
+        ->and($colorData->hex)->toBe('');
 });
 
 test('color data can be converted to array', function (): void {
@@ -91,8 +105,8 @@ test('color data can be converted to array', function (): void {
 
 test('color book data can be constructed', function (): void {
     $colors = [
-        new ColorData(name: 'Color 1'),
-        new ColorData(name: 'Color 2'),
+        new ColorData(name: 'Color 1', hex: 'FF0000'),
+        new ColorData(name: 'Color 2', hex: '00FF00'),
     ];
 
     $colorBookData = new ColorBookData(

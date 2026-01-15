@@ -10,8 +10,8 @@ final readonly class ColorData
 {
     public function __construct(
         public string $name,
+        public string $hex,
         public ?string $lab = null,
-        public ?string $hex = null,
         public ?string $rgb = null,
         public ?string $cmyk = null,
     ) {}
@@ -20,8 +20,8 @@ final readonly class ColorData
     {
         return new self(
             name: trim($json->name ?? ''),
+            hex: $json->hex ?? '',
             lab: $json->lab ?? null,
-            hex: $json->hex ?? null,
             rgb: $json->rgb ?? null,
             cmyk: $json->cmyk ?? null,
         );

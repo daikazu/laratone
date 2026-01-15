@@ -94,3 +94,71 @@ test('color can store all color format values', function (): void {
         ->and($color->rgb)->toBe(['r' => 255, 'g' => 85, 'b' => 0])
         ->and($color->cmyk)->toBe(['c' => 0, 'm' => 67, 'y' => 100, 'k' => 0]);
 });
+
+// Auto-calculation Tests
+
+test('color auto-calculates rgb from hex when rgb is null', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+    ]);
+
+    expect($color->rgb)->toBe(['r' => 255, 'g' => 0, 'b' => 0]);
+});
+
+test('color auto-calculates cmyk from hex when cmyk is null', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+    ]);
+
+    expect($color->cmyk)->toBe(['c' => 0, 'm' => 100, 'y' => 100, 'k' => 0]);
+});
+
+test('color auto-calculates lab from hex when lab is null', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+    ]);
+
+    // LAB values for red should be approximately L=53, a=80, b=67
+    expect($color->lab['l'])->toBeGreaterThan(50)
+        ->and($color->lab['a'])->toBeGreaterThan(70);
+});
+
+test('color uses stored value over calculated when provided', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Custom Red',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+        // Use custom LAB values (like official Pantone values)
+        'lab' => '50.0,75.0,60.0',
+    ]);
+
+    // Should use stored value, not calculated
+    expect($color->lab)->toBe(['l' => 50.0, 'a' => 75.0, 'b' => 60.0]);
+});
+
+test('color with only hex can return all color formats', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Orange',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF5500',
+    ]);
+
+    // All formats should be available
+    expect($color->hex)->toBe('FF5500')
+        ->and($color->rgb)->toBe(['r' => 255, 'g' => 85, 'b' => 0])
+        ->and($color->cmyk['c'])->toBe(0)
+        ->and($color->cmyk['k'])->toBe(0)
+        ->and($color->lab)->toBeArray()
+        ->and($color->lab)->toHaveKeys(['l', 'a', 'b']);
+});

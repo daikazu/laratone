@@ -25,15 +25,17 @@ test('forType generates correct cast string for CMYK', function (): void {
     expect($cast)->toBe(ColorValueCast::class . ':c,m,y,k,int');
 });
 
-test('cast returns null for null value', function (): void {
+test('cast returns stored value when provided', function (): void {
     $colorBook = ColorBook::factory()->create();
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
-        'lab'           => null,
+        'hex'           => 'FF0000',
+        'lab'           => '53.23,80.11,67.22',
     ]);
 
-    expect($color->lab)->toBeNull();
+    // Should return stored value, not calculated
+    expect($color->lab)->toBe(['l' => 53.23, 'a' => 80.11, 'b' => 67.22]);
 });
 
 test('cast returns null for empty string value', function (): void {
@@ -41,10 +43,13 @@ test('cast returns null for empty string value', function (): void {
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
         'rgb'           => '',
     ]);
 
-    expect($color->rgb)->toBeNull();
+    // Empty string stored value returns null from cast, but auto-calc kicks in
+    // Since we have hex, it will calculate RGB
+    expect($color->rgb)->toBe(['r' => 255, 'g' => 0, 'b' => 0]);
 });
 
 test('cast parses LAB values as floats', function (): void {
@@ -52,6 +57,7 @@ test('cast parses LAB values as floats', function (): void {
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
         'lab'           => '53.23,80.11,67.22',
     ]);
 
@@ -63,6 +69,7 @@ test('cast parses RGB values as integers', function (): void {
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
+        'hex'           => 'FF8040',
         'rgb'           => '255,128,64',
     ]);
 
@@ -74,6 +81,7 @@ test('cast parses CMYK values as integers', function (): void {
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
         'cmyk'          => '0,100,100,0',
     ]);
 
@@ -85,10 +93,12 @@ test('cast returns null for mismatched component count', function (): void {
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
-        'rgb'           => '255,128', // Missing third component
+        'hex'           => 'FF8000',
+        'rgb'           => '255,128', // Missing third component - invalid stored value
     ]);
 
-    expect($color->rgb)->toBeNull();
+    // Since stored value is invalid, auto-calculation kicks in from hex
+    expect($color->rgb)->toBe(['r' => 255, 'g' => 128, 'b' => 0]);
 });
 
 test('cast can set value from array', function (): void {
@@ -96,6 +106,7 @@ test('cast can set value from array', function (): void {
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
         'rgb'           => ['r' => 255, 'g' => 0, 'b' => 0],
     ]);
 
@@ -108,6 +119,7 @@ test('cast can set value from string', function (): void {
     $color = Color::create([
         'name'          => 'Test Color',
         'color_book_id' => $colorBook->id,
+        'hex'           => '6496C8',
         'rgb'           => '100,150,200',
     ]);
 

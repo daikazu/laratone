@@ -110,7 +110,11 @@ final class SeedCommand extends Command
         $colors = [];
         foreach ($data->data as $index => $color) {
             if (! isset($color->name) || trim($color->name) === '') {
-                throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Name is empty or not set");
+                throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Name is required");
+            }
+
+            if (! isset($color->hex) || trim($color->hex) === '') {
+                throw new Exception("Color book '{$data->name}' has an invalid color at index {$index}: Hex value is required");
             }
 
             $colors[] = ColorData::fromJson($color);
@@ -169,10 +173,12 @@ final class SeedCommand extends Command
 
     private function createColor(int $colorBookId, ColorData $colorData): void
     {
-        // Clean up hex value if it exists
-        $hex = $colorData->hex !== null && $colorData->hex !== ''
-            ? strtoupper((string) preg_replace('/[^0-9A-F]/i', '', $colorData->hex))
-            : null;
+        // Clean up hex value - required field, must be valid 6-character hex
+        $hex = strtoupper((string) preg_replace('/[^0-9A-F]/i', '', $colorData->hex));
+
+        if (strlen($hex) !== 6) {
+            throw new Exception("Invalid hex value '{$colorData->hex}' for color '{$colorData->name}'. Expected 6 hex characters.");
+        }
 
         Color::create([
             'color_book_id' => $colorBookId,
