@@ -204,6 +204,93 @@ test('available white points returns valid options', function (): void {
         ->and($whitePoints)->toContain('D75');
 });
 
+// RGB to OKLCH Tests
+
+test('converts rgb to oklch for red', function (): void {
+    $converter = new ColorConverter;
+
+    $result = $converter->rgbToOklch(['r' => 255, 'g' => 0, 'b' => 0]);
+
+    // Red should have high lightness (~0.63), high chroma, hue around 29°
+    expect($result['l'])->toBeGreaterThan(0.6)
+        ->and($result['l'])->toBeLessThan(0.7)
+        ->and($result['c'])->toBeGreaterThan(0.2)
+        ->and($result['h'])->toBeGreaterThan(20)
+        ->and($result['h'])->toBeLessThan(35);
+});
+
+test('converts rgb to oklch for green', function (): void {
+    $converter = new ColorConverter;
+
+    $result = $converter->rgbToOklch(['r' => 0, 'g' => 255, 'b' => 0]);
+
+    // Green should have high lightness (~0.87), hue around 142°
+    expect($result['l'])->toBeGreaterThan(0.85)
+        ->and($result['c'])->toBeGreaterThan(0.2)
+        ->and($result['h'])->toBeGreaterThan(130)
+        ->and($result['h'])->toBeLessThan(150);
+});
+
+test('converts rgb to oklch for blue', function (): void {
+    $converter = new ColorConverter;
+
+    $result = $converter->rgbToOklch(['r' => 0, 'g' => 0, 'b' => 255]);
+
+    // Blue should have lower lightness (~0.45), hue around 264°
+    expect($result['l'])->toBeGreaterThan(0.4)
+        ->and($result['l'])->toBeLessThan(0.5)
+        ->and($result['c'])->toBeGreaterThan(0.3)
+        ->and($result['h'])->toBeGreaterThan(260)
+        ->and($result['h'])->toBeLessThan(270);
+});
+
+test('converts rgb to oklch for white', function (): void {
+    $converter = new ColorConverter;
+
+    $result = $converter->rgbToOklch(['r' => 255, 'g' => 255, 'b' => 255]);
+
+    // White should have lightness = 1, chroma = 0 (achromatic)
+    expect($result['l'])->toBeGreaterThan(0.99)
+        ->and($result['c'])->toBeLessThan(0.001);
+});
+
+test('converts rgb to oklch for black', function (): void {
+    $converter = new ColorConverter;
+
+    $result = $converter->rgbToOklch(['r' => 0, 'g' => 0, 'b' => 0]);
+
+    // Black should have lightness = 0, chroma = 0 (achromatic)
+    expect($result['l'])->toBe(0.0)
+        ->and($result['c'])->toBe(0.0);
+});
+
+test('oklch values are within expected ranges', function (): void {
+    $converter = new ColorConverter;
+
+    // Test with a variety of colors
+    $colors = [
+        ['r' => 255, 'g' => 128, 'b' => 64],
+        ['r' => 64, 'g' => 128, 'b' => 255],
+        ['r' => 128, 'g' => 64, 'b' => 128],
+    ];
+
+    foreach ($colors as $rgb) {
+        $result = $converter->rgbToOklch($rgb);
+
+        // L should be 0-1
+        expect($result['l'])->toBeGreaterThanOrEqual(0)
+            ->and($result['l'])->toBeLessThanOrEqual(1);
+
+        // C should be 0-~0.4 for sRGB colors
+        expect($result['c'])->toBeGreaterThanOrEqual(0)
+            ->and($result['c'])->toBeLessThan(0.5);
+
+        // H should be 0-360
+        expect($result['h'])->toBeGreaterThanOrEqual(0)
+            ->and($result['h'])->toBeLessThan(360);
+    }
+});
+
 // Integration: Full conversion chain
 
 test('hex converts through all color spaces', function (): void {
@@ -213,9 +300,12 @@ test('hex converts through all color spaces', function (): void {
     $rgb = $converter->hexToRgb('FF5500');
     $cmyk = $converter->rgbToCmyk($rgb);
     $lab = $converter->rgbToLab($rgb, 'D65');
+    $oklch = $converter->rgbToOklch($rgb);
 
     expect($rgb)->toBe(['r' => 255, 'g' => 85, 'b' => 0])
         ->and($cmyk['c'])->toBe(0)
         ->and($cmyk['k'])->toBe(0)
-        ->and($lab['l'])->toBeGreaterThan(50);
+        ->and($lab['l'])->toBeGreaterThan(50)
+        ->and($oklch['l'])->toBeGreaterThan(0.6)
+        ->and($oklch['c'])->toBeGreaterThan(0.1);
 });

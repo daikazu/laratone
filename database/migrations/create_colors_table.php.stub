@@ -31,6 +31,7 @@ return new class extends Migration
             $table->string('lab')->nullable();
             $table->string('rgb')->nullable();
             $table->string('cmyk')->nullable();
+            $table->string('oklch')->nullable();
             $table->timestamps();
         });
     }

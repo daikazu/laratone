@@ -8,6 +8,7 @@ test('color type has correct values', function (): void {
     expect(ColorType::LAB->value)->toBe('lab')
         ->and(ColorType::RGB->value)->toBe('rgb')
         ->and(ColorType::CMYK->value)->toBe('cmyk')
+        ->and(ColorType::OKLCH->value)->toBe('oklch')
         ->and(ColorType::HEX->value)->toBe('hex');
 });
 
@@ -41,4 +42,12 @@ test('cmyk color type returns int value type', function (): void {
 
 test('hex color type returns string value type', function (): void {
     expect(ColorType::HEX->valueType())->toBe('string');
+});
+
+test('oklch color type returns correct components', function (): void {
+    expect(ColorType::OKLCH->components())->toBe(['l', 'c', 'h']);
+});
+
+test('oklch color type returns float value type', function (): void {
+    expect(ColorType::OKLCH->valueType())->toBe('float');
 });

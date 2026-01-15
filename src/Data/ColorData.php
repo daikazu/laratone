@@ -14,6 +14,7 @@ final readonly class ColorData
         public ?string $lab = null,
         public ?string $rgb = null,
         public ?string $cmyk = null,
+        public ?string $oklch = null,
     ) {}
 
     public static function fromJson(stdClass $json): self
@@ -24,6 +25,7 @@ final readonly class ColorData
             lab: $json->lab ?? null,
             rgb: $json->rgb ?? null,
             cmyk: $json->cmyk ?? null,
+            oklch: $json->oklch ?? null,
         );
     }
 
@@ -33,11 +35,12 @@ final readonly class ColorData
     public function toArray(): array
     {
         return [
-            'name' => $this->name,
-            'lab'  => $this->lab,
-            'hex'  => $this->hex,
-            'rgb'  => $this->rgb,
-            'cmyk' => $this->cmyk,
+            'name'  => $this->name,
+            'lab'   => $this->lab,
+            'hex'   => $this->hex,
+            'rgb'   => $this->rgb,
+            'cmyk'  => $this->cmyk,
+            'oklch' => $this->oklch,
         ];
     }
 }

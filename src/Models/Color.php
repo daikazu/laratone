@@ -30,6 +30,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array{l: float, a: float, b: float}|null $lab
  * @property array{r: int, g: int, b: int}|null $rgb
  * @property array{c: int, m: int, y: int, k: int}|null $cmyk
+ * @property array{l: float, c: float, h: float}|null $oklch
  * @property \Carbon\Carbon $created_at
  * @property \Carbon\Carbon $updated_at
  */
@@ -101,6 +102,11 @@ class Color extends Model
         if ($lab === null || $lab === '') {
             $this->attributes['lab'] = implode(',', $calculated['lab']);
         }
+
+        $oklch = $this->attributes['oklch'] ?? null;
+        if ($oklch === null || $oklch === '') {
+            $this->attributes['oklch'] = implode(',', $calculated['oklch']);
+        }
     }
 
     /**
@@ -109,9 +115,10 @@ class Color extends Model
     protected function casts(): array
     {
         return [
-            'lab'  => ColorValueCast::forType(ColorType::LAB),
-            'rgb'  => ColorValueCast::forType(ColorType::RGB),
-            'cmyk' => ColorValueCast::forType(ColorType::CMYK),
+            'lab'   => ColorValueCast::forType(ColorType::LAB),
+            'rgb'   => ColorValueCast::forType(ColorType::RGB),
+            'cmyk'  => ColorValueCast::forType(ColorType::CMYK),
+            'oklch' => ColorValueCast::forType(ColorType::OKLCH),
         ];
     }
 
@@ -144,6 +151,7 @@ class Color extends Model
             'rgb'   => $this->calculateRgbFromHex($hex),
             'cmyk'  => $this->calculateCmykFromHex($hex),
             'lab'   => $this->calculateLabFromHex($hex),
+            'oklch' => $this->calculateOklchFromHex($hex),
             default => $value,
         };
     }
@@ -184,11 +192,23 @@ class Color extends Model
     }
 
     /**
+     * Calculate OKLCH values from hex.
+     *
+     * @return array{l: float, c: float, h: float}
+     */
+    private function calculateOklchFromHex(string $hex): array
+    {
+        $rgb = $this->calculateRgbFromHex($hex);
+
+        return app(ColorConverter::class)->rgbToOklch($rgb);
+    }
+
+    /**
      * Calculate all color values from a hex code.
      *
      * Useful for pre-calculating values before saving to avoid lazy calculation overhead.
      *
-     * @return array{rgb: array{r: int, g: int, b: int}, cmyk: array{c: int, m: int, y: int, k: int}, lab: array{l: float, a: float, b: float}}
+     * @return array{rgb: array{r: int, g: int, b: int}, cmyk: array{c: int, m: int, y: int, k: int}, lab: array{l: float, a: float, b: float}, oklch: array{l: float, c: float, h: float}}
      */
     public static function calculateAllFromHex(string $hex, ?string $whitePoint = null): array
     {
@@ -199,9 +219,10 @@ class Color extends Model
         $rgb = $converter->hexToRgb($hex);
 
         return [
-            'rgb'  => $rgb,
-            'cmyk' => $converter->rgbToCmyk($rgb),
-            'lab'  => $converter->rgbToLab($rgb, $whitePoint),
+            'rgb'   => $rgb,
+            'cmyk'  => $converter->rgbToCmyk($rgb),
+            'lab'   => $converter->rgbToLab($rgb, $whitePoint),
+            'oklch' => $converter->rgbToOklch($rgb),
         ];
     }
 

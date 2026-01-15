@@ -125,3 +125,21 @@ test('cast can set value from string', function (): void {
 
     expect($color->rgb)->toBe(['r' => 100, 'g' => 150, 'b' => 200]);
 });
+
+test('forType generates correct cast string for OKLCH', function (): void {
+    $cast = ColorValueCast::forType(ColorType::OKLCH);
+
+    expect($cast)->toBe(ColorValueCast::class . ':l,c,h,float');
+});
+
+test('cast parses OKLCH values as floats', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Test Color',
+        'color_book_id' => $colorBook->id,
+        'hex'           => 'FF0000',
+        'oklch'         => '0.6279,0.2577,29.23',
+    ]);
+
+    expect($color->oklch)->toBe(['l' => 0.6279, 'c' => 0.2577, 'h' => 29.23]);
+});

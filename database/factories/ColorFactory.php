@@ -30,6 +30,7 @@ final class ColorFactory extends Factory
             'hex'           => $this->faker->hexColor(),
             'rgb'           => $this->faker->rgbColor(),
             'cmyk'          => $this->faker->cmykColor(),
+            'oklch'         => $this->faker->oklchColor(),
         ];
     }
 }

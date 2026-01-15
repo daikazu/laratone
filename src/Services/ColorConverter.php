@@ -7,9 +7,10 @@ namespace Daikazu\Laratone\Services;
 use InvalidArgumentException;
 
 /**
- * Service for converting between color spaces (Hex, RGB, CMYK, LAB).
+ * Service for converting between color spaces (Hex, RGB, CMYK, LAB, OKLCH).
  *
  * Uses sRGB color space with configurable white point references for LAB conversions.
+ * OKLCH is a perceptually uniform color space that doesn't require white point configuration.
  */
 final readonly class ColorConverter
 {
@@ -35,6 +36,28 @@ final readonly class ColorConverter
         [0.4124564, 0.3575761, 0.1804375],
         [0.2126729, 0.7151522, 0.0721750],
         [0.0193339, 0.1191920, 0.9503041],
+    ];
+
+    /**
+     * Linear RGB to LMS transformation matrix for OKLab.
+     *
+     * @var array<array<float>>
+     */
+    private const array LINEAR_RGB_TO_LMS_MATRIX = [
+        [0.4122214708, 0.5363325363, 0.0514459929],
+        [0.2119034982, 0.6806995451, 0.1073969566],
+        [0.0883024619, 0.2817188376, 0.6299787005],
+    ];
+
+    /**
+     * LMS (cube root) to OKLab transformation matrix.
+     *
+     * @var array<array<float>>
+     */
+    private const array LMS_TO_OKLAB_MATRIX = [
+        [0.2104542553, 0.7936177850, -0.0040720468],
+        [1.9779984951, -2.4285922050, 0.4505937099],
+        [0.0259040371, 0.7827717662, -0.8086757660],
     ];
 
     /**
@@ -130,6 +153,115 @@ final readonly class ColorConverter
         $wp = self::WHITE_POINTS[$whitePoint];
 
         return $this->xyzToLab($xyz, $wp);
+    }
+
+    /**
+     * Convert RGB to OKLCH color space.
+     *
+     * OKLCH is a perceptually uniform color space based on OKLab.
+     * Unlike LAB, it doesn't require white point configuration.
+     *
+     * @param  array{r: int, g: int, b: int}  $rgb
+     * @return array{l: float, c: float, h: float}
+     */
+    public function rgbToOklch(array $rgb): array
+    {
+        // RGB (0-255) → Linear RGB (0-1) → LMS → OKLab → OKLCH
+        $linearRgb = $this->rgbToLinearRgb($rgb);
+        $lms = $this->linearRgbToLms($linearRgb);
+        $oklab = $this->lmsToOklab($lms);
+
+        return $this->oklabToOklch($oklab);
+    }
+
+    /**
+     * Convert RGB to linear RGB (apply inverse gamma).
+     *
+     * @param  array{r: int, g: int, b: int}  $rgb
+     * @return array{r: float, g: float, b: float}
+     */
+    private function rgbToLinearRgb(array $rgb): array
+    {
+        return [
+            'r' => $this->inverseGamma($rgb['r'] / 255),
+            'g' => $this->inverseGamma($rgb['g'] / 255),
+            'b' => $this->inverseGamma($rgb['b'] / 255),
+        ];
+    }
+
+    /**
+     * Convert linear RGB to LMS cone response.
+     *
+     * @param  array{r: float, g: float, b: float}  $linearRgb
+     * @return array{l: float, m: float, s: float}
+     */
+    private function linearRgbToLms(array $linearRgb): array
+    {
+        $matrix = self::LINEAR_RGB_TO_LMS_MATRIX;
+        $r = $linearRgb['r'];
+        $g = $linearRgb['g'];
+        $b = $linearRgb['b'];
+
+        return [
+            'l' => $matrix[0][0] * $r + $matrix[0][1] * $g + $matrix[0][2] * $b,
+            'm' => $matrix[1][0] * $r + $matrix[1][1] * $g + $matrix[1][2] * $b,
+            's' => $matrix[2][0] * $r + $matrix[2][1] * $g + $matrix[2][2] * $b,
+        ];
+    }
+
+    /**
+     * Convert LMS to OKLab.
+     *
+     * @param  array{l: float, m: float, s: float}  $lms
+     * @return array{l: float, a: float, b: float}
+     */
+    private function lmsToOklab(array $lms): array
+    {
+        // Apply cube root to LMS values
+        $l = $lms['l'] >= 0 ? $lms['l'] ** (1 / 3) : -((-$lms['l']) ** (1 / 3));
+        $m = $lms['m'] >= 0 ? $lms['m'] ** (1 / 3) : -((-$lms['m']) ** (1 / 3));
+        $s = $lms['s'] >= 0 ? $lms['s'] ** (1 / 3) : -((-$lms['s']) ** (1 / 3));
+
+        $matrix = self::LMS_TO_OKLAB_MATRIX;
+
+        return [
+            'l' => $matrix[0][0] * $l + $matrix[0][1] * $m + $matrix[0][2] * $s,
+            'a' => $matrix[1][0] * $l + $matrix[1][1] * $m + $matrix[1][2] * $s,
+            'b' => $matrix[2][0] * $l + $matrix[2][1] * $m + $matrix[2][2] * $s,
+        ];
+    }
+
+    /**
+     * Convert OKLab to OKLCH (polar form).
+     *
+     * @param  array{l: float, a: float, b: float}  $oklab
+     * @return array{l: float, c: float, h: float}
+     */
+    private function oklabToOklch(array $oklab): array
+    {
+        $l = $oklab['l'];
+        $a = $oklab['a'];
+        $b = $oklab['b'];
+
+        // Chroma: distance from neutral axis
+        $c = sqrt($a * $a + $b * $b);
+
+        // Hue: angle in degrees (0-360)
+        $h = atan2($b, $a) * (180 / M_PI);
+        if ($h < 0) {
+            $h += 360;
+        }
+
+        // For achromatic colors (c ≈ 0), hue is undefined - use 0
+        if ($c < 0.0001) {
+            $h = 0.0;
+        }
+
+        return [
+            'l' => round($l, 4),
+            'c' => round($c, 4),
+            'h' => round($h, 2),
+        ];
     }
 
     /**

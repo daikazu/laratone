@@ -26,4 +26,13 @@ final class ColorFakerProvider extends Base
 
         return "{$c},{$m},{$y},{$k}";
     }
+
+    public function oklchColor(): string
+    {
+        $l = round(mt_rand(0, 100) / 100, 4);
+        $c = round(mt_rand(0, 37) / 100, 4);
+        $h = round(mt_rand(0, 36000) / 100, 2);
+
+        return "{$l},{$c},{$h}";
+    }
 }
