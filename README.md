@@ -8,8 +8,11 @@
 # Laratone
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/run-tests.yml?branch=master&label=tests&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3Arun-tests+branch%3Amaster)
+[![Supported PHP Version](https://img.shields.io/packagist/php-v/daikazu/laratone?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
+[![Supported Laravel Version](https://img.shields.io/packagist/dependency-v/daikazu/laratone/illuminate%2Fcontracts?style=flat-square&label=laravel)](https://packagist.org/packages/daikazu/laratone)
 [![Total Downloads](https://img.shields.io/packagist/dt/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
+[![License](https://img.shields.io/packagist/l/daikazu/laratone.svg?style=flat-square)](LICENSE.md)
 
 Laratone is a comprehensive Laravel package for managing color libraries and swatches in your applications. It provides an easy-to-use API for storing, retrieving, and managing color data, with built-in support for various color formats (HEX, RGB, CMYK, LAB, OKLCH) and popular color libraries.
 
