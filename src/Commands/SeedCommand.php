@@ -28,7 +28,7 @@ final class SeedCommand extends Command
             $fileStr = is_string($file) ? $file : null;
             // Support both absolute paths and paths relative to base_path
             $filePath = $fileStr !== null
-                ? (str_starts_with($fileStr, '/') ? $fileStr : base_path($fileStr))
+                ? ($this->isAbsolutePath($fileStr) ? $fileStr : base_path($fileStr))
                 : null;
 
             if ($filePath === null) {
@@ -57,17 +57,27 @@ final class SeedCommand extends Command
         }
     }
 
+    /**
+     * Determine whether a path is absolute on both Unix and Windows.
+     */
+    private function isAbsolutePath(string $path): bool
+    {
+        return str_starts_with($path, '/')
+            || str_starts_with($path, '\\\\')
+            || preg_match('/^[A-Za-z]:[\\\\\\/]/', $path) === 1;
+    }
+
     private function seedAllColorBooks(): void
     {
         $colorBooksDir = __DIR__ . '/../../colorbooks/';
-        $allColorBooks = array_diff(scandir($colorBooksDir) ?: [], ['.', '..']);
+        $allColorBooks = glob($colorBooksDir . '*.json') ?: [];
 
         $this->info('Starting to seed all color books...');
         $progressBar = $this->output->createProgressBar(count($allColorBooks));
         $progressBar->start();
 
         foreach ($allColorBooks as $colorBook) {
-            $name = str_replace('.json', '', $colorBook);
+            $name = basename($colorBook, '.json');
             $data = $this->loadColorBookFile($name, byName: true);
             $colorBookData = $this->validateAndTransform($data);
             $this->seed($colorBookData);
@@ -148,7 +158,9 @@ final class SeedCommand extends Command
             return;
         }
 
-        DB::transaction(function () use ($colorBookData): void {
+        $skipped = [];
+
+        DB::transaction(function () use ($colorBookData, &$skipped): void {
             $colorBook = $this->createColorBook($colorBookData->name);
 
             $progressBar = $this->output->createProgressBar(count($colorBookData->colors));
@@ -157,8 +169,17 @@ final class SeedCommand extends Command
             $progressBar->start();
 
             foreach ($colorBookData->colors as $index => $colorData) {
+                $hex = $this->normalizeHex($colorData->hex);
+
+                if ($hex === null) {
+                    $skipped[] = "'{$colorData->name}' (index {$index}): invalid hex value '{$colorData->hex}'";
+                    $progressBar->advance();
+
+                    continue;
+                }
+
                 try {
-                    $this->createColor($colorBook->id, $colorData);
+                    $this->createColor($colorBook->id, $colorData, $hex);
                     $progressBar->advance();
                 } catch (Exception $e) {
                     $progressBar->clear();
@@ -172,6 +193,10 @@ final class SeedCommand extends Command
             $this->newLine();
         });
 
+        foreach ($skipped as $warning) {
+            $this->warn("Skipped color in '{$colorBookData->name}': {$warning}");
+        }
+
         $this->info("Seeded: {$colorBookData->name}");
     }
 
@@ -183,15 +208,19 @@ final class SeedCommand extends Command
         ]);
     }
 
-    private function createColor(int $colorBookId, ColorData $colorData): void
+    /**
+     * Clean up a raw hex value, returning null when it cannot be normalized
+     * to a valid 6-character hex code.
+     */
+    private function normalizeHex(string $rawHex): ?string
     {
-        // Clean up hex value - required field, must be valid 6-character hex
-        $hex = strtoupper((string) preg_replace('/[^0-9A-F]/i', '', $colorData->hex));
+        $hex = strtoupper((string) preg_replace('/[^0-9A-F]/i', '', $rawHex));
 
-        if (strlen($hex) !== 6) {
-            throw new Exception("Invalid hex value '{$colorData->hex}' for color '{$colorData->name}'. Expected 6 hex characters.");
-        }
+        return strlen($hex) === 6 ? $hex : null;
+    }
 
+    private function createColor(int $colorBookId, ColorData $colorData, string $hex): void
+    {
         Color::create([
             'color_book_id' => $colorBookId,
             'name'          => $colorData->name,

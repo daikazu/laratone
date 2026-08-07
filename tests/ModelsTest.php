@@ -286,3 +286,42 @@ test('recalculates values when hex changes and pre_calculate_colors is enabled',
     expect($color->getAttributes()['rgb'])->toBe('0,255,0')
         ->and($color->getAttributes()['oklch'])->not->toBeNull();
 });
+
+test('toArray auto-calculates color values from hex', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    Color::create(['name' => 'Lime', 'hex' => '93FF49', 'color_book_id' => $colorBook->id]);
+
+    $array = Color::where('name', 'Lime')->first()->toArray();
+
+    expect($array['rgb'])->toBe(['r' => 147, 'g' => 255, 'b' => 73])
+        ->and($array['lab'])->not->toBeNull()
+        ->and($array['cmyk'])->not->toBeNull()
+        ->and($array['oklch'])->not->toBeNull();
+});
+
+test('updating hex clears stale derived color values', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'hex'           => 'FF0000',
+        'rgb'           => ['r' => 255, 'g' => 0, 'b' => 0],
+        'color_book_id' => $colorBook->id,
+    ]);
+
+    $color->update(['hex' => '0000FF']);
+
+    expect($color->fresh()->rgb)->toBe(['r' => 0, 'g' => 0, 'b' => 255]);
+});
+
+test('updating hex keeps explicitly provided color values', function (): void {
+    $colorBook = ColorBook::factory()->create();
+    $color = Color::create([
+        'name'          => 'Red',
+        'hex'           => 'FF0000',
+        'color_book_id' => $colorBook->id,
+    ]);
+
+    $color->update(['hex' => '0000FF', 'lab' => ['l' => 1.0, 'a' => 2.0, 'b' => 3.0]]);
+
+    expect($color->fresh()->lab)->toBe(['l' => 1.0, 'a' => 2.0, 'b' => 3.0]);
+});

@@ -130,13 +130,12 @@ test('clears cache when modifying data', function (): void {
     $laratone = new Laratone;
 
     // Prime the cache
-    $laratone->colorBooks();
+    expect($laratone->colorBooks())->toHaveCount(1);
 
-    // Modify data
+    // Modify data - the cache is cleared, so the new book is visible
     $laratone->createColorBook('New Book');
 
-    // Check if cache was cleared
-    expect(Cache::has('laratone.color_books'))->toBeFalse();
+    expect($laratone->colorBooks())->toHaveCount(2);
 });
 
 // Find Closest Colors Tests

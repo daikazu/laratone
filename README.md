@@ -30,7 +30,7 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 - PHP 8.3 or higher
 - Laravel 12.x or 13.x
 
-> **Note:** For PHP 8.3 / Laravel 11 support, use version 4.x of this package.
+> **Note:** For Laravel 11 support, use version 4.x of this package.
 
 ## Installation
 
@@ -218,20 +218,17 @@ GET /api/laratone/colorbook/color-book-plus-solid-coated/find-closest?hex=FF5500
 
 ### Rate Limiting & Custom Middleware
 
-Laratone routes use a `laratone` middleware alias that does nothing by default. You can replace it with your own middleware to add rate limiting, authentication, or other functionality.
-
-To add rate limiting, define the `laratone` middleware alias in your application's bootstrap:
+Laratone routes are rate limited to **60 requests per minute** by default. Configure this with the `rate_limit` option (throttle middleware format, `"maxAttempts,decayMinutes"`):
 
 ```php
-// bootstrap/app.php (Laravel 11+)
-->withMiddleware(function (Middleware $middleware) {
-    $middleware->alias([
-        'laratone' => \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1',
-    ]);
-})
+// config/laratone.php
+'rate_limit' => '120,1', // 120 requests per minute
+'rate_limit' => null,    // disable the built-in throttle
 ```
 
-Or in a service provider:
+Routes also pass through a `laratone` middleware alias that does nothing by default. You can replace it with your own middleware to add authentication, logging, or a custom rate limiter (set `rate_limit` to `null` to avoid double throttling).
+
+Define the alias in a service provider:
 
 ```php
 // app/Providers/AppServiceProvider.php

@@ -39,6 +39,28 @@ final readonly class ColorConverter
     ];
 
     /**
+     * Bradford chromatic adaptation matrix (XYZ to cone response).
+     *
+     * @var array<array<float>>
+     */
+    private const array BRADFORD_MATRIX = [
+        [0.8951000, 0.2664000, -0.1614000],
+        [-0.7502000, 1.7135000, 0.0367000],
+        [0.0389000, -0.0685000, 1.0296000],
+    ];
+
+    /**
+     * Inverse Bradford chromatic adaptation matrix (cone response to XYZ).
+     *
+     * @var array<array<float>>
+     */
+    private const array BRADFORD_INVERSE_MATRIX = [
+        [0.9869929, -0.1470543, 0.1599627],
+        [0.4323053, 0.5183603, 0.0492912],
+        [-0.0085287, 0.0400428, 0.9684867],
+    ];
+
+    /**
      * Linear RGB to LMS transformation matrix for OKLab.
      *
      * @var array<array<float>>
@@ -152,7 +174,60 @@ final readonly class ColorConverter
         $xyz = $this->rgbToXyz($rgb);
         $wp = self::WHITE_POINTS[$whitePoint];
 
+        // sRGB is defined relative to D65, so XYZ from rgbToXyz() is
+        // D65-referenced. For any other target white point, chromatically
+        // adapt the XYZ values first - otherwise the LAB output is skewed
+        // (e.g. pure white would not map to L=100, a=0, b=0).
+        if ($whitePoint !== 'D65') {
+            $xyz = $this->adaptWhitePoint($xyz, self::WHITE_POINTS['D65'], $wp);
+        }
+
         return $this->xyzToLab($xyz, $wp);
+    }
+
+    /**
+     * Chromatically adapt XYZ values between white points (Bradford CAT).
+     *
+     * @param  array{x: float, y: float, z: float}  $xyz
+     * @param  array{x: float, y: float, z: float}  $source
+     * @param  array{x: float, y: float, z: float}  $dest
+     * @return array{x: float, y: float, z: float}
+     */
+    private function adaptWhitePoint(array $xyz, array $source, array $dest): array
+    {
+        $m = self::BRADFORD_MATRIX;
+        $mi = self::BRADFORD_INVERSE_MATRIX;
+
+        // Cone responses of the source and destination white points
+        $coneSource = $this->multiplyMatrix($m, $source['x'], $source['y'], $source['z']);
+        $coneDest = $this->multiplyMatrix($m, $dest['x'], $dest['y'], $dest['z']);
+
+        // Cone response of the color, scaled by the white point ratio
+        $cone = $this->multiplyMatrix($m, $xyz['x'], $xyz['y'], $xyz['z']);
+        $scaled = [
+            $cone[0] * ($coneDest[0] / $coneSource[0]),
+            $cone[1] * ($coneDest[1] / $coneSource[1]),
+            $cone[2] * ($coneDest[2] / $coneSource[2]),
+        ];
+
+        $adapted = $this->multiplyMatrix($mi, $scaled[0], $scaled[1], $scaled[2]);
+
+        return ['x' => $adapted[0], 'y' => $adapted[1], 'z' => $adapted[2]];
+    }
+
+    /**
+     * Multiply a 3x3 matrix by a 3-component vector.
+     *
+     * @param  array<array<float>>  $matrix
+     * @return array{float, float, float}
+     */
+    private function multiplyMatrix(array $matrix, float $a, float $b, float $c): array
+    {
+        return [
+            $matrix[0][0] * $a + $matrix[0][1] * $b + $matrix[0][2] * $c,
+            $matrix[1][0] * $a + $matrix[1][1] * $b + $matrix[1][2] * $c,
+            $matrix[2][0] * $a + $matrix[2][1] * $b + $matrix[2][2] * $c,
+        ];
     }
 
     /**

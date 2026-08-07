@@ -61,12 +61,49 @@ class Color extends Model
             $color->fillCalculatedValuesIfEnabled();
         });
 
+        static::saving(function (Color $color): void {
+            // 'distance' is a transient attribute attached by ColorMatcher
+            // results; it has no database column and must never be persisted
+            $color->offsetUnset('distance');
+        });
+
         static::updating(function (Color $color): void {
-            // Recalculate if hex changed and auto-persist is enabled
+            // When hex changes, stored color space values derived from the old
+            // hex are stale; clear any the caller did not explicitly provide so
+            // they are recalculated (persisted when pre_calculate_colors is
+            // enabled, lazily on access otherwise)
             if ($color->isDirty('hex')) {
+                foreach (['rgb', 'cmyk', 'lab', 'oklch'] as $attribute) {
+                    if (! $color->isDirty($attribute)) {
+                        $color->setAttribute($attribute, null);
+                    }
+                }
+
                 $color->fillCalculatedValuesIfEnabled();
             }
         });
+    }
+
+    /**
+     * Convert the model's attributes to an array.
+     *
+     * Mirrors getAttribute's auto-calculation so serialized output (toArray,
+     * JSON responses) matches direct attribute access instead of exposing
+     * null for color values that can be calculated from hex.
+     *
+     * @return array<string, mixed>
+     */
+    public function attributesToArray(): array
+    {
+        $attributes = parent::attributesToArray();
+
+        foreach (['rgb', 'cmyk', 'lab', 'oklch'] as $key) {
+            if (array_key_exists($key, $attributes) && $attributes[$key] === null) {
+                $attributes[$key] = $this->getAttribute($key);
+            }
+        }
+
+        return $attributes;
     }
 
     /**

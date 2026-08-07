@@ -7,6 +7,7 @@ namespace Daikazu\Laratone\Casts;
 use Daikazu\Laratone\Enums\ColorType;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
 use Illuminate\Database\Eloquent\Model;
+use InvalidArgumentException;
 
 /**
  * @implements CastsAttributes<array<string, int|float>|null, string|null>
@@ -81,9 +82,50 @@ final readonly class ColorValueCast implements CastsAttributes
 
         // Handle both array (from casted model) and string (from factory/raw input)
         if (is_array($value)) {
-            return implode(',', $value);
+            return implode(',', $this->normalizeComponents($value, $key));
         }
 
         return (string) $value;
+    }
+
+    /**
+     * Validate array components and order them canonically.
+     *
+     * Associative arrays are reordered by the canonical component keys so
+     * insertion order cannot silently transpose channels (e.g. supplying
+     * ['b' => .., 'r' => .., 'g' => ..] for an RGB value). List arrays are
+     * assumed to be in canonical order and validated for length.
+     *
+     * @param  array<int|string, int|float|string>  $value
+     * @return array<int|float|string>
+     */
+    private function normalizeComponents(array $value, string $attribute): array
+    {
+        if (array_is_list($value)) {
+            if (count($value) !== count($this->keys)) {
+                throw new InvalidArgumentException(sprintf(
+                    'Invalid %s value: expected %d components, got %d.',
+                    $attribute,
+                    count($this->keys),
+                    count($value)
+                ));
+            }
+
+            return $value;
+        }
+
+        $missing = array_diff($this->keys, array_keys($value));
+        $unknown = array_diff(array_keys($value), $this->keys);
+
+        if ($missing !== [] || $unknown !== []) {
+            throw new InvalidArgumentException(sprintf(
+                'Invalid %s value: expected keys [%s], got [%s].',
+                $attribute,
+                implode(',', $this->keys),
+                implode(',', array_map(strval(...), array_keys($value)))
+            ));
+        }
+
+        return array_map(fn (string $key): int|float|string => $value[$key], $this->keys);
     }
 }

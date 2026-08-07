@@ -14,6 +14,8 @@ use Illuminate\Support\Str;
 
 final class Laratone
 {
+    private const string CACHE_VERSION_KEY = 'laratone.cache_version';
+
     /**
      * Get all color books with their associated colors.
      *
@@ -22,7 +24,7 @@ final class Laratone
     public function colorBooks(): Collection
     {
         /** @var Collection<int, ColorBook> */
-        return Cache::remember('laratone.color_books', $this->cacheTime(), fn () => ColorBook::with('colors')->get());
+        return Cache::remember($this->cacheKey('color_books'), $this->cacheTime(), fn () => ColorBook::with('colors')->get());
     }
 
     /**
@@ -35,10 +37,31 @@ final class Laratone
     {
         /** @var ColorBook|null */
         return Cache::remember(
-            key: "laratone.color_book.{$colorBookSlug}",
+            key: $this->cacheKey("color_book.{$colorBookSlug}"),
             ttl: $this->cacheTime(),
             callback: fn () => ColorBook::slug($colorBookSlug)->first()
         );
+    }
+
+    /**
+     * Build a versioned cache key.
+     *
+     * Every Laratone cache entry (service layer and HTTP layer) embeds the
+     * current cache version, so clearCache() can invalidate everything at
+     * once by bumping the version - including entries whose exact keys can
+     * no longer be enumerated (query-dependent HTTP keys, deleted books).
+     */
+    public function cacheKey(string $suffix): string
+    {
+        return 'laratone.v' . $this->cacheVersion() . '.' . $suffix;
+    }
+
+    /**
+     * Get the current cache version.
+     */
+    private function cacheVersion(): int
+    {
+        return (int) Cache::rememberForever(self::CACHE_VERSION_KEY, fn (): int => 1);
     }
 
     /**
@@ -64,17 +87,13 @@ final class Laratone
 
     /**
      * Clear all cached color book data.
+     *
+     * Bumps the cache version, which orphans every versioned entry at once.
+     * Orphaned entries expire naturally via their TTL.
      */
     public function clearCache(): void
     {
-        Cache::forget('laratone.color_books');
-
-        // Clear individual color book caches
-        $colorBooks = ColorBook::all();
-        foreach ($colorBooks as $colorBook) {
-            Cache::forget("laratone.color_book.{$colorBook->slug}");
-            Cache::forget("laratone.color_book.{$colorBook->slug}.colors");
-        }
+        Cache::forever(self::CACHE_VERSION_KEY, $this->cacheVersion() + 1);
 
         if ($this->cacheDriverSupportsTags()) {
             Cache::tags(['laratone'])->flush();
@@ -150,7 +169,7 @@ final class Laratone
     {
         /** @var Collection<int, Color> */
         return Cache::remember(
-            key: "laratone.color_book.{$colorBook->slug}.colors",
+            key: $this->cacheKey("color_book.{$colorBook->slug}.colors"),
             ttl: $this->cacheTime(),
             callback: fn () => $colorBook->colors()->get()
         );

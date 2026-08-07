@@ -10,10 +10,10 @@ Version 5.0 is a major release with breaking changes. This guide will help you u
 
 | Requirement | v4.x | v5.x |
 |-------------|------|------|
-| PHP | 8.3+ | 8.4+ |
-| Laravel | 11.x | 12.x |
+| PHP | 8.3+ | 8.3+ |
+| Laravel | 11.x | 12.x or 13.x |
 
-> **Important:** v5.x drops support for PHP 8.3 and Laravel 11. If you need to support older versions, continue using v4.x.
+> **Important:** v5.x drops support for Laravel 11. If you need to support older versions, continue using v4.x.
 
 ### Step 1: Update Composer Dependencies
 
@@ -23,7 +23,20 @@ Update your `composer.json` to require v5:
 composer require daikazu/laratone:^5.0
 ```
 
-### Step 2: Update Relationship Access
+### Step 2: Run the Database Migrations
+
+v5 adds an `oklch` column to the colors table. Publish and run the new migration:
+
+```bash
+php artisan vendor:publish --tag=laratone-migrations
+php artisan migrate
+```
+
+The migration is guarded, so it is a no-op on databases that already have the column.
+
+> **Note:** v5 also expects every color to have a hex value (the v4 schema allowed null). Rows without a hex value are skipped by the find-closest matching, so backfill hex values for any legacy rows you want included.
+
+### Step 3: Update Relationship Access
 
 The `color_book` relationship on the `Color` model has been renamed to `colorBook` to follow Laravel conventions.
 
@@ -46,7 +59,7 @@ Search your codebase for `color_book` and update to `colorBook`:
 grep -r "color_book" app/ resources/
 ```
 
-### Step 3: Update Color Value Access
+### Step 4: Update Color Value Access
 
 Color values (LAB, RGB, CMYK, OKLCH) are now cast using a custom cast class. The format remains the same, but the underlying implementation has changed.
 
@@ -60,7 +73,7 @@ $color->oklch; // ['l' => 0.6279, 'c' => 0.2577, 'h' => 29.23]
 
 **New in v5.x:** RGB, CMYK, LAB, and OKLCH values are now automatically calculated from the hex value if not stored. This means you only need to provide hex when creating colors - other values are optional.
 
-### Step 4: Review Deprecated Method Removals
+### Step 5: Review Deprecated Method Removals
 
 The following deprecated methods have been removed:
 
@@ -70,7 +83,7 @@ The following deprecated methods have been removed:
 | `Color::getRgbAttribute()` | Use `$color->rgb` directly (auto-cast) |
 | `Color::getCmykAttribute()` | Use `$color->cmyk` directly (auto-cast) |
 
-### Step 5: Update API Consumers
+### Step 6: Update API Consumers
 
 If you're consuming the Laratone API, be aware of the following changes:
 
@@ -84,7 +97,7 @@ GET /api/laratone/colorbook/solid-coated
 GET /api/laratone/colorbook/Solid_Coated
 ```
 
-### Step 6: Clear Application Cache
+### Step 7: Clear Application Cache
 
 After upgrading, clear your application cache:
 
@@ -94,7 +107,7 @@ php artisan config:clear
 php artisan route:clear
 ```
 
-### Step 7: Update Configuration (Optional)
+### Step 8: Update Configuration (Optional)
 
 A new `white_point` configuration option has been added for LAB color calculations. If you've published the config, you may want to add it:
 
@@ -114,8 +127,8 @@ return [
 
 | Change | Impact | Action Required |
 |--------|--------|-----------------|
-| PHP 8.4 required | High | Upgrade PHP |
-| Laravel 12 required | High | Upgrade Laravel |
+| Laravel 12+ required | High | Upgrade Laravel |
+| New `oklch` migration | Medium | Publish migrations and run `php artisan migrate` |
 | `color_book` → `colorBook` | Medium | Update relationship access |
 | Hex value now required | Medium | Ensure all colors have hex values |
 | Accessor methods removed | Low | Use property access instead |
