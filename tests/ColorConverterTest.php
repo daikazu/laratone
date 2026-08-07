@@ -309,3 +309,15 @@ test('hex converts through all color spaces', function (): void {
         ->and($oklch['l'])->toBeGreaterThan(0.6)
         ->and($oklch['c'])->toBeGreaterThan(0.1);
 });
+
+test('non-D65 white points produce neutral white via chromatic adaptation', function (): void {
+    $converter = new ColorConverter;
+
+    foreach (['D50', 'D55', 'D75'] as $whitePoint) {
+        $lab = $converter->rgbToLab(['r' => 255, 'g' => 255, 'b' => 255], $whitePoint);
+
+        expect($lab['l'])->toEqualWithDelta(100.0, 0.01)
+            ->and($lab['a'])->toEqualWithDelta(0.0, 0.01)
+            ->and($lab['b'])->toEqualWithDelta(0.0, 0.01);
+    }
+});

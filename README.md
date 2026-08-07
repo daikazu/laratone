@@ -8,8 +8,11 @@
 # Laratone
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
-[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/daikazu/laratone/run-tests.yml?branch=master&label=tests&style=flat-square)](https://github.com/daikazu/laratone/actions?query=workflow%3Arun-tests+branch%3Amaster)
+[![Supported PHP Version](https://img.shields.io/packagist/php-v/daikazu/laratone?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
+[![Supported Laravel Version](https://img.shields.io/packagist/dependency-v/daikazu/laratone/illuminate%2Fcontracts?style=flat-square&label=laravel)](https://packagist.org/packages/daikazu/laratone)
 [![Total Downloads](https://img.shields.io/packagist/dt/daikazu/laratone.svg?style=flat-square)](https://packagist.org/packages/daikazu/laratone)
+[![License](https://img.shields.io/packagist/l/daikazu/laratone.svg?style=flat-square)](LICENSE.md)
 
 Laratone is a comprehensive Laravel package for managing color libraries and swatches in your applications. It provides an easy-to-use API for storing, retrieving, and managing color data, with built-in support for various color formats (HEX, RGB, CMYK, LAB, OKLCH) and popular color libraries.
 
@@ -23,14 +26,14 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 - Easy color book management and seeding
 - Flexible REST API with filtering, sorting, and pagination
 - Type-safe color value casting (LAB, RGB, CMYK, OKLCH)
-- Full PHP 8.4 support with strict typing throughout
+- PHP 8.3+ support with strict typing throughout
 
 ## Requirements
 
-- PHP 8.4 or higher
-- Laravel 12.x or greater
+- PHP 8.3 or higher
+- Laravel 12.x or 13.x
 
-> **Note:** For PHP 8.3 / Laravel 11 support, use version 4.x of this package.
+> **Note:** For Laravel 11 support, use version 4.x of this package.
 
 ## Installation
 
@@ -218,20 +221,17 @@ GET /api/laratone/colorbook/color-book-plus-solid-coated/find-closest?hex=FF5500
 
 ### Rate Limiting & Custom Middleware
 
-Laratone routes use a `laratone` middleware alias that does nothing by default. You can replace it with your own middleware to add rate limiting, authentication, or other functionality.
-
-To add rate limiting, define the `laratone` middleware alias in your application's bootstrap:
+Laratone routes are rate limited to **60 requests per minute** by default. Configure this with the `rate_limit` option (throttle middleware format, `"maxAttempts,decayMinutes"`):
 
 ```php
-// bootstrap/app.php (Laravel 11+)
-->withMiddleware(function (Middleware $middleware) {
-    $middleware->alias([
-        'laratone' => \Illuminate\Routing\Middleware\ThrottleRequests::class . ':60,1',
-    ]);
-})
+// config/laratone.php
+'rate_limit' => '120,1', // 120 requests per minute
+'rate_limit' => null,    // disable the built-in throttle
 ```
 
-Or in a service provider:
+Routes also pass through a `laratone` middleware alias that does nothing by default. You can replace it with your own middleware to add authentication, logging, or a custom rate limiter (set `rate_limit` to `null` to avoid double throttling).
+
+Define the alias in a service provider:
 
 ```php
 // app/Providers/AppServiceProvider.php

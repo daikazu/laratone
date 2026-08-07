@@ -12,11 +12,16 @@ use Daikazu\Laratone\Models\ColorBook;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
 final class LaratoneController extends Controller
 {
+    public function __construct(
+        private readonly Laratone $laratone
+    ) {}
+
     /**
      * Get a color book by its slug with optional filtering and sorting.
      *
@@ -31,7 +36,7 @@ final class LaratoneController extends Controller
         if ($isRandom) {
             $colorBook = $this->fetchColorBook($slug, $request);
         } else {
-            $cacheKey = "colorbook:{$slug}:" . md5((string) json_encode($request->validated()));
+            $cacheKey = $this->laratone->cacheKey("http.colorbook.{$slug}." . md5((string) json_encode($request->validated())));
 
             $colorBook = Cache::remember(
                 $cacheKey,
@@ -60,7 +65,7 @@ final class LaratoneController extends Controller
             'sort' => ['nullable', Rule::in(['asc', 'desc'])],
         ]);
 
-        $cacheKey = 'colorbooks:' . md5((string) json_encode($validated));
+        $cacheKey = $this->laratone->cacheKey('http.colorbooks.' . md5((string) json_encode($validated)));
 
         $colorBooks = Cache::remember($cacheKey, $this->cacheTime(), function () use ($validated) {
             $query = ColorBook::select('name', 'slug');
@@ -124,13 +129,13 @@ final class LaratoneController extends Controller
         $algorithm = $request->algorithm();
 
         // Cache key based on slug and all parameters
-        $cacheKey = "colorbook:{$slug}:closest:" . md5("{$hex}:{$limit}:{$algorithm}");
+        $cacheKey = $this->laratone->cacheKey("http.colorbook.{$slug}.closest." . md5("{$hex}:{$limit}:{$algorithm}"));
 
-        /** @var \Illuminate\Support\Collection<int, Color> $matches */
+        /** @var Collection<int, Color> $matches */
         $matches = Cache::remember(
             $cacheKey,
             $this->cacheTime(),
-            fn () => app(Laratone::class)->findClosestColors(
+            fn (): Collection => $this->laratone->findClosestColors(
                 colorBook: $colorBook,
                 targetHex: $hex,
                 limit: $limit,
@@ -138,17 +143,15 @@ final class LaratoneController extends Controller
             )
         );
 
-        $matchesArray = $matches->map(function (Color $color): array {
-            return [
-                'name'     => $color->name,
-                'hex'      => $color->hex,
-                'distance' => $color->getAttribute('distance'),
-                'rgb'      => $color->rgb,
-                'cmyk'     => $color->cmyk,
-                'lab'      => $color->lab,
-                'oklch'    => $color->oklch,
-            ];
-        })->values()->all();
+        $matchesArray = $matches->map(fn (Color $color): array => [
+            'name'     => $color->name,
+            'hex'      => $color->hex,
+            'distance' => $color->getAttribute('distance'),
+            'rgb'      => $color->rgb,
+            'cmyk'     => $color->cmyk,
+            'lab'      => $color->lab,
+            'oklch'    => $color->oklch,
+        ])->values()->all();
 
         return response()->json([
             'target_hex' => $hex,

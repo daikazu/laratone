@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
 
     /**
@@ -63,4 +65,17 @@ return [
      * to prevent excessive resource usage.
      */
     'max_match_limit' => 100,
+
+    /**
+     * Rate limit for the Laratone API routes, as "maxAttempts,decayMinutes"
+     * (the same format as Laravel's throttle middleware).
+     *
+     * The find-closest endpoint performs an O(n) distance calculation over
+     * an entire color book on every cache miss, so unthrottled access can
+     * exhaust CPU and grow the cache without bound.
+     *
+     * Set to null to disable the built-in throttle (for example, when the
+     * 'laratone' middleware alias is overridden with your own rate limiter).
+     */
+    'rate_limit' => '60,1',
 ];

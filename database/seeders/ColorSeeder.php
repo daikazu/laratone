@@ -6,6 +6,7 @@ namespace Daikazu\Laratone\Database\Seeders;
 
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
+use Daikazu\Laratone\Services\ColorConverter;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
@@ -13,6 +14,8 @@ final class ColorSeeder extends Seeder
 {
     public function run(): void
     {
+        $converter = app(ColorConverter::class);
+
         $colorBooks = [
             [
                 'name'   => 'Autumn Palette',
@@ -53,69 +56,18 @@ final class ColorSeeder extends Seeder
             ]);
 
             foreach ($colorBookData['colors'] as $colorData) {
-                $rgb = $this->hexToRgb($colorData['hex']);
+                $rgb = $converter->hexToRgb($colorData['hex']);
 
                 Color::create([
                     'color_book_id' => $colorBook->id,
                     'name'          => $colorData['name'],
-                    'hex'           => $colorData['hex'],
-                    'rgb'           => implode(',', $rgb),
-                    'lab'           => $this->rgbToLab($rgb),
-                    'cmyk'          => $this->rgbToCmyk($rgb),
+                    'hex'           => ltrim($colorData['hex'], '#'),
+                    'rgb'           => $rgb,
+                    'lab'           => $converter->rgbToLab($rgb),
+                    'cmyk'          => $converter->rgbToCmyk($rgb),
+                    'oklch'         => $converter->rgbToOklch($rgb),
                 ]);
             }
         }
-    }
-
-    /**
-     * @return array<int, int>
-     */
-    private function hexToRgb(string $hex): array
-    {
-        $hex = ltrim($hex, '#');
-
-        return [
-            (int) hexdec(substr($hex, 0, 2)),
-            (int) hexdec(substr($hex, 2, 2)),
-            (int) hexdec(substr($hex, 4, 2)),
-        ];
-    }
-
-    /**
-     * @param  array<int, int>  $rgb
-     */
-    private function rgbToLab(array $rgb): string
-    {
-        $r = $rgb[0] / 255;
-        $g = $rgb[1] / 255;
-        $b = $rgb[2] / 255;
-
-        $x = $r * 0.4124 + $g * 0.3576 + $b * 0.1805;
-        $y = $r * 0.2126 + $g * 0.7152 + $b * 0.0722;
-        $z = $r * 0.0193 + $g * 0.1192 + $b * 0.9505;
-
-        return sprintf('%.2f,%.2f,%.2f', $x * 100, $y * 100, $z * 100);
-    }
-
-    /**
-     * @param  array<int, int>  $rgb
-     */
-    private function rgbToCmyk(array $rgb): string
-    {
-        $r = $rgb[0] / 255;
-        $g = $rgb[1] / 255;
-        $b = $rgb[2] / 255;
-
-        $k = 1 - max($r, $g, $b);
-
-        if ($k === 1.0) {
-            return '0.00,0.00,0.00,100.00';
-        }
-
-        $c = (1 - $r - $k) / (1 - $k);
-        $m = (1 - $g - $k) / (1 - $k);
-        $y = (1 - $b - $k) / (1 - $k);
-
-        return sprintf('%.2f,%.2f,%.2f,%.2f', $c * 100, $m * 100, $y * 100, $k * 100);
     }
 }

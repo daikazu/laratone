@@ -2,8 +2,10 @@
 
 declare(strict_types=1);
 
+use Daikazu\Laratone\Laratone;
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
+use Illuminate\Support\Facades\Route;
 
 test('can get color book by slug', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
@@ -111,4 +113,28 @@ test('caches color book responses', function (): void {
 
     $response2->assertStatus(200)
         ->assertJsonPath('name', 'Test book');
+});
+
+test('colorbook endpoint serves fresh data after cache-clearing mutations', function (): void {
+    $colorBook = ColorBook::create(['name' => 'Cache Clear Book', 'slug' => 'cache-clear-book']);
+    Color::create(['name' => 'Original', 'hex' => 'FF0000', 'color_book_id' => $colorBook->id]);
+
+    $first = $this->getJson('/api/laratone/colorbook/cache-clear-book');
+    $first->assertOk();
+    expect($first->json('colors'))->toHaveCount(1);
+
+    app(Laratone::class)->addColorToBook($colorBook, ['name' => 'Added', 'hex' => '00FF00']);
+
+    $second = $this->getJson('/api/laratone/colorbook/cache-clear-book');
+    $second->assertOk();
+    expect($second->json('colors'))->toHaveCount(2);
+});
+
+test('api routes are rate limited by default', function (): void {
+    $middleware = Route::getRoutes()
+        ->getByName('laratone.colorbooks')
+        ->gatherMiddleware();
+
+    expect($middleware)->toContain('throttle:60,1')
+        ->and($middleware)->toContain('laratone');
 });

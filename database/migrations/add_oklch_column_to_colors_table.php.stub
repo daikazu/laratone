@@ -1,0 +1,41 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    private readonly string $tableName;
+
+    public function __construct()
+    {
+        $this->tableName = config('laratone.table_prefix') . 'colors';
+    }
+
+    public function up(): void
+    {
+        // Fresh installs already have the column via create_colors_table;
+        // this migration upgrades databases created by Laratone v4.
+        if (Schema::hasColumn($this->tableName, 'oklch')) {
+            return;
+        }
+
+        Schema::table($this->tableName, function (Blueprint $table): void {
+            $table->string('oklch')->nullable()->after('cmyk');
+        });
+    }
+
+    public function down(): void
+    {
+        if (! Schema::hasColumn($this->tableName, 'oklch')) {
+            return;
+        }
+
+        Schema::table($this->tableName, function (Blueprint $table): void {
+            $table->dropColumn('oklch');
+        });
+    }
+};

@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
+use Daikazu\Laratone\Laratone;
 use Daikazu\Laratone\Models\ColorBook;
-use Illuminate\Support\Facades\Cache;
 
 test('clear cache command clears laratone cache', function (): void {
-    // Create a color book to populate cache
     $colorBook = ColorBook::factory()->create();
+    $laratone = new Laratone;
 
-    // Prime the cache by accessing the color book
-    Cache::put('laratone.color_books', collect([$colorBook]), 3600);
-    Cache::put("laratone.color_book.{$colorBook->slug}", $colorBook, 3600);
-    Cache::put("laratone.color_book.{$colorBook->slug}.colors", collect(), 3600);
+    // Prime the cache, then change data behind the cache's back
+    $laratone->colorBooks();
+    $laratone->colorBookBySlug($colorBook->slug);
+    ColorBook::query()->delete();
 
-    // Verify cache is populated
-    expect(Cache::has('laratone.color_books'))->toBeTrue();
+    // Cached results are still served
+    expect($laratone->colorBooks())->toHaveCount(1)
+        ->and($laratone->colorBookBySlug($colorBook->slug))->not->toBeNull();
 
     // Run the clear cache command
     $this->artisan('laratone:clear-cache')
         ->assertSuccessful()
         ->expectsOutput('Laratone cache cleared successfully.');
 
-    // Verify cache is cleared
-    expect(Cache::has('laratone.color_books'))->toBeFalse()
-        ->and(Cache::has("laratone.color_book.{$colorBook->slug}"))->toBeFalse()
-        ->and(Cache::has("laratone.color_book.{$colorBook->slug}.colors"))->toBeFalse();
+    // Fresh data is served, including for the deleted book's slug
+    expect($laratone->colorBooks())->toHaveCount(0)
+        ->and($laratone->colorBookBySlug($colorBook->slug))->toBeNull();
 });
 
 test('clear cache command succeeds even when cache is empty', function (): void {

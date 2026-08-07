@@ -55,36 +55,45 @@ final readonly class ColorMatcher
             ? $this->colorConverter->rgbToLab($targetRgb, $this->getWhitePoint())
             : $this->colorConverter->rgbToOklch($targetRgb);
 
-        // Calculate distance for each color
-        $colorsWithDistance = $colors->map(function (Color $color) use ($targetColorSpace, $algorithm): array {
+        // Calculate distance for each color, skipping colors whose color-space
+        // values cannot be resolved (e.g. legacy rows without hex or lab data)
+        $colorsWithDistance = $colors->map(function (Color $color) use ($targetColorSpace, $algorithm): ?array {
             if ($algorithm === self::ALGORITHM_LAB) {
                 /** @var array{l: float, a: float, b: float} $targetLab */
                 $targetLab = $targetColorSpace;
-                /** @var array{l: float, a: float, b: float} $colorLab */
+                /** @var array{l: float, a: float, b: float}|null $colorLab */
                 $colorLab = $color->lab;
+                if ($colorLab === null) {
+                    return null;
+                }
                 $distance = $this->calculateLabDistance($targetLab, $colorLab);
             } else {
                 /** @var array{l: float, c: float, h: float} $targetOklch */
                 $targetOklch = $targetColorSpace;
-                /** @var array{l: float, c: float, h: float} $colorOklch */
+                /** @var array{l: float, c: float, h: float}|null $colorOklch */
                 $colorOklch = $color->oklch;
+                if ($colorOklch === null) {
+                    return null;
+                }
                 $distance = $this->calculateOklchDistance($targetOklch, $colorOklch);
             }
 
             return [
-                'color' => $color,
+                'color'    => $color,
                 'distance' => $distance,
             ];
-        });
+        })->filter();
 
         // Sort by distance (ascending) and take the top N
         $sorted = $colorsWithDistance
             ->sortBy('distance')
             ->take($limit);
 
-        // Return Color models with distance attribute attached
+        // Return Color models with distance attribute attached. Clone so the
+        // transient distance attribute never dirties the managed (and possibly
+        // cached) model instances.
         return $sorted->map(function (array $item): Color {
-            $color = $item['color'];
+            $color = clone $item['color'];
             $color->setAttribute('distance', round($item['distance'], 4));
 
             return $color;
@@ -111,8 +120,11 @@ final readonly class ColorMatcher
     /**
      * Calculate distance between two OKLCH colors.
      *
-     * Uses cylindrical distance with proper hue angle handling:
-     * sqrt((L2-L1)^2 + (C2-C1)^2 + hueDistance^2)
+     * OKLCH is the cylindrical form of OKLab, which is designed so that
+     * Euclidean distance is perceptually uniform. Converting (C, H) back to
+     * Cartesian (a, b) and measuring straight-line distance therefore weights
+     * lightness, chroma, and hue correctly and handles hue wraparound
+     * naturally (359deg and 1deg map to nearby points).
      *
      * @param  array{l: float, c: float, h: float}  $oklch1
      * @param  array{l: float, c: float, h: float}  $oklch2
@@ -120,46 +132,18 @@ final readonly class ColorMatcher
     private function calculateOklchDistance(array $oklch1, array $oklch2): float
     {
         $deltaL = $oklch2['l'] - $oklch1['l'];
-        $deltaC = $oklch2['c'] - $oklch1['c'];
 
-        // Handle hue angle wraparound (shortest path on the color wheel)
-        $deltaH = $this->calculateHueDifference($oklch1['h'], $oklch2['h']);
+        $h1 = deg2rad($oklch1['h']);
+        $h2 = deg2rad($oklch2['h']);
 
-        // Scale lightness difference to be comparable with chroma and hue
-        // L is 0-1 in OKLCH, multiply by a factor to balance with C and H
-        $scaledDeltaL = $deltaL * 0.4;
+        $deltaA = $oklch2['c'] * cos($h2) - $oklch1['c'] * cos($h1);
+        $deltaB = $oklch2['c'] * sin($h2) - $oklch1['c'] * sin($h1);
 
         return sqrt(
-            $scaledDeltaL * $scaledDeltaL +
-            $deltaC * $deltaC +
-            $deltaH * $deltaH
+            $deltaL * $deltaL +
+            $deltaA * $deltaA +
+            $deltaB * $deltaB
         );
-    }
-
-    /**
-     * Calculate the shortest angular difference between two hue values.
-     *
-     * Handles wraparound where 359deg and 1deg should be close together.
-     * Returns a value scaled appropriately for use in distance calculations.
-     *
-     * @param  float  $h1  Hue in degrees (0-360)
-     * @param  float  $h2  Hue in degrees (0-360)
-     * @return float Scaled hue difference suitable for distance calculation
-     */
-    private function calculateHueDifference(float $h1, float $h2): float
-    {
-        // Calculate the angular difference
-        $diff = abs($h1 - $h2);
-
-        // Take the shortest path around the color wheel
-        if ($diff > 180) {
-            $diff = 360 - $diff;
-        }
-
-        // Convert to radians and scale appropriately
-        // Divide by 360 and multiply by 2*pi, then scale by a factor
-        // to balance with L and C in the distance formula
-        return ($diff / 360) * 0.15;
     }
 
     /**

@@ -18,7 +18,7 @@ final class LaratoneServiceProvider extends PackageServiceProvider
         $package
             ->name('laratone')
             ->hasConfigFile()
-            ->hasMigrations(['create_color_books_table', 'create_colors_table'])
+            ->hasMigrations(['create_color_books_table', 'create_colors_table', 'add_oklch_column_to_colors_table'])
             ->hasCommands([
                 SeedCommand::class,
                 ClearCacheCommand::class,

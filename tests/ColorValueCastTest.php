@@ -143,3 +143,38 @@ test('cast parses OKLCH values as floats', function (): void {
 
     expect($color->oklch)->toBe(['l' => 0.6279, 'c' => 0.2577, 'h' => 29.23]);
 });
+
+test('cast reorders associative arrays by canonical component keys', function (): void {
+    $colorBook = ColorBook::factory()->create();
+
+    $color = Color::create([
+        'name'          => 'Ordered',
+        'hex'           => '0A64C8',
+        'rgb'           => ['b' => 200, 'r' => 10, 'g' => 100],
+        'color_book_id' => $colorBook->id,
+    ]);
+
+    expect($color->fresh()->rgb)->toBe(['r' => 10, 'g' => 100, 'b' => 200]);
+});
+
+test('cast rejects associative arrays with unexpected keys', function (): void {
+    $colorBook = ColorBook::factory()->create();
+
+    Color::create([
+        'name'          => 'Bad Keys',
+        'hex'           => 'FF0000',
+        'rgb'           => ['x' => 1, 'y' => 2, 'z' => 3],
+        'color_book_id' => $colorBook->id,
+    ]);
+})->throws(InvalidArgumentException::class);
+
+test('cast rejects list arrays with wrong component count', function (): void {
+    $colorBook = ColorBook::factory()->create();
+
+    Color::create([
+        'name'          => 'Bad Count',
+        'hex'           => 'FF0000',
+        'rgb'           => [255, 0],
+        'color_book_id' => $colorBook->id,
+    ]);
+})->throws(InvalidArgumentException::class);

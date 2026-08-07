@@ -229,3 +229,51 @@ test('distance values are rounded to 4 decimal places', function (): void {
         expect(strlen($parts[1]))->toBeLessThanOrEqual(4);
     }
 });
+
+test('oklch weights hue properly so a desaturated red beats a cyan for a red target', function (): void {
+    $colorBook = ColorBook::factory()->create();
+
+    $desaturatedRed = Color::create(['name' => 'Desaturated Red', 'hex' => 'CC6655', 'color_book_id' => $colorBook->id]);
+    $cyan = Color::create(['name' => 'Cyan', 'hex' => '00A5AD', 'color_book_id' => $colorBook->id]);
+
+    $colors = new Collection([$cyan, $desaturatedRed]);
+    $matcher = new ColorMatcher(new ColorConverter);
+
+    $result = $matcher->findClosest('FF0000', $colors, 1, 'oklch');
+
+    expect($result->first()->name)->toBe('Desaturated Red');
+});
+
+test('skips colors whose color values cannot be resolved', function (): void {
+    $colorBook = ColorBook::factory()->create();
+
+    $noHex = Color::create(['name' => 'No Hex', 'hex' => '', 'color_book_id' => $colorBook->id]);
+    $red = Color::create(['name' => 'Red', 'hex' => 'FF0000', 'color_book_id' => $colorBook->id]);
+
+    $colors = new Collection([$noHex, $red]);
+    $matcher = new ColorMatcher(new ColorConverter);
+
+    $result = $matcher->findClosest('FF0000', $colors, 5);
+
+    expect($result)->toHaveCount(1)
+        ->and($result->first()->name)->toBe('Red');
+});
+
+test('does not leave the distance attribute dirty on searched models', function (): void {
+    $colorBook = ColorBook::factory()->create();
+
+    $red = Color::create(['name' => 'Red', 'hex' => 'FF0000', 'color_book_id' => $colorBook->id]);
+
+    $matcher = new ColorMatcher(new ColorConverter);
+    $match = $matcher->findClosest('FF5500', new Collection([$red]), 1)->first();
+
+    expect($match->getAttribute('distance'))->toBeFloat()
+        ->and($red->isDirty())->toBeFalse();
+
+    // A matched model can be saved without the transient distance attribute
+    // leaking into the UPDATE statement
+    $match->name = 'Renamed';
+    $match->save();
+
+    expect(Color::where('name', 'Renamed')->exists())->toBeTrue();
+});

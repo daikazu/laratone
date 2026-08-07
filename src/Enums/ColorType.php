@@ -30,8 +30,8 @@ enum ColorType: string
     {
         return match ($this) {
             self::LAB, self::OKLCH => 'float',
-            self::RGB, self::CMYK => 'int',
-            self::HEX => 'string',
+            self::RGB, self::CMYK  => 'int',
+            self::HEX              => 'string',
         };
     }
 }

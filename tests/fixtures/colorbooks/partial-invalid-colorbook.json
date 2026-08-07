@@ -1,0 +1,8 @@
+{
+    "name": "Partial Invalid Book",
+    "data": [
+        { "name": "Good Red", "hex": "FF0000" },
+        { "name": "Mangled", "hex": "12AB" },
+        { "name": "Good Blue", "hex": "0000FF" }
+    ]
+}
