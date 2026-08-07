@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Daikazu\Laratone\Models;
 
+use Carbon\Carbon;
 use Daikazu\Laratone\Casts\ColorValueCast;
 use Daikazu\Laratone\Enums\ColorType;
 use Daikazu\Laratone\Services\ColorConverter;
@@ -31,8 +32,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property array{r: int, g: int, b: int}|null $rgb
  * @property array{c: int, m: int, y: int, k: int}|null $cmyk
  * @property array{l: float, c: float, h: float}|null $oklch
- * @property \Carbon\Carbon $created_at
- * @property \Carbon\Carbon $updated_at
+ * @property Carbon $created_at
+ * @property Carbon $updated_at
  */
 class Color extends Model
 {

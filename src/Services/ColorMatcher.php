@@ -72,7 +72,7 @@ final readonly class ColorMatcher
             }
 
             return [
-                'color' => $color,
+                'color'    => $color,
                 'distance' => $distance,
             ];
         });

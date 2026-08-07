@@ -12,6 +12,7 @@ use Daikazu\Laratone\Models\ColorBook;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Validation\Rule;
 
@@ -126,7 +127,7 @@ final class LaratoneController extends Controller
         // Cache key based on slug and all parameters
         $cacheKey = "colorbook:{$slug}:closest:" . md5("{$hex}:{$limit}:{$algorithm}");
 
-        /** @var \Illuminate\Support\Collection<int, Color> $matches */
+        /** @var Collection<int, Color> $matches */
         $matches = Cache::remember(
             $cacheKey,
             $this->cacheTime(),
