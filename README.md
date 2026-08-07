@@ -23,12 +23,12 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 - Easy color book management and seeding
 - Flexible REST API with filtering, sorting, and pagination
 - Type-safe color value casting (LAB, RGB, CMYK, OKLCH)
-- Full PHP 8.4 support with strict typing throughout
+- PHP 8.3+ support with strict typing throughout
 
 ## Requirements
 
-- PHP 8.4 or higher
-- Laravel 12.x or greater
+- PHP 8.3 or higher
+- Laravel 12.x or 13.x
 
 > **Note:** For PHP 8.3 / Laravel 11 support, use version 4.x of this package.
 
