@@ -45,7 +45,9 @@ final class LaratoneServiceProvider extends ServiceProvider
             ClearCacheCommand::class,
         ]);
 
-        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        if (config('laratone.routes.enabled', true)) {
+            $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
+        }
 
         // Register the laratone middleware alias with a default pass-through.
         // Users can override this in their service provider's boot method.

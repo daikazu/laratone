@@ -9,6 +9,7 @@ use Daikazu\Laratone\Laratone;
 use Daikazu\Laratone\LaratoneServiceProvider;
 use Daikazu\Laratone\Services\ColorConverter;
 use Daikazu\Laratone\Services\ColorMatcher;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -118,4 +119,58 @@ test('services are registered as singletons', function (string $service): void {
 
 test('facade resolves the shared laratone instance', function (): void {
     expect(LaratoneFacade::getFacadeRoot())->toBe(app(Laratone::class));
+});
+
+/**
+ * Boot the provider against a fresh router so route registration reflects
+ * the current config.
+ */
+function bootLaratoneRoutes(): Router
+{
+    $router = new Router(app('events'), app());
+    app()->instance('router', $router);
+    Route::clearResolvedInstance('router');
+
+    $provider = new LaratoneServiceProvider(app());
+    $provider->register();
+    $provider->boot();
+
+    $router->getRoutes()->refreshNameLookups();
+
+    return $router;
+}
+
+test('all api routes are registered under the default prefix', function (): void {
+    $routes = bootLaratoneRoutes()->getRoutes();
+
+    expect($routes->getByName('laratone.colorbooks')->uri())->toBe('api/laratone/colorbooks')
+        ->and($routes->getByName('laratone.colorbook')->uri())->toBe('api/laratone/colorbook/{slug}')
+        ->and($routes->getByName('laratone.colorbook.find-closest')->uri())->toBe('api/laratone/colorbook/{slug}/find-closest')
+        ->and($routes->getByName('laratone.colorbook.search')->uri())->toBe('api/laratone/colorbook/{slug}/search')
+        ->and($routes->getByName('laratone.find-closest')->uri())->toBe('api/laratone/find-closest');
+});
+
+test('the route prefix is configurable', function (): void {
+    config()->set('laratone.routes.prefix', 'colors/v1');
+
+    $routes = bootLaratoneRoutes()->getRoutes();
+
+    expect($routes->getByName('laratone.colorbooks')->uri())->toBe('colors/v1/colorbooks')
+        ->and($routes->getByName('laratone.find-closest')->uri())->toBe('colors/v1/find-closest');
+});
+
+test('routes can be disabled', function (): void {
+    config()->set('laratone.routes.enabled', false);
+
+    $routes = bootLaratoneRoutes()->getRoutes();
+
+    expect($routes->getByName('laratone.colorbooks'))->toBeNull()
+        ->and($routes->count())->toBe(0);
+});
+
+test('routes stay enabled when an older published config has no routes key', function (): void {
+    config()->set('laratone.routes', null);
+
+    expect(bootLaratoneRoutes()->getRoutes()->getByName('laratone.colorbooks')?->uri())
+        ->toBe('api/laratone/colorbooks');
 });

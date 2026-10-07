@@ -53,16 +53,18 @@ return [
      * Default algorithm for finding closest colors.
      *
      * Options:
-     * - 'lab' : CIE76 Delta E in LAB color space (default, industry standard)
-     * - 'oklch' : Distance in OKLCH color space (more perceptually uniform)
+     * - 'lab'       : CIE76 Delta E in LAB color space (default, fastest)
+     * - 'ciede2000' : CIEDE2000 Delta E, the print/textile industry standard
+     *                 (most accurate match to human perception)
+     * - 'oklch'     : Distance in OKLCH color space (modern, perceptually uniform)
      */
     'default_match_algorithm' => 'lab',
 
     /**
      * Maximum number of closest color matches that can be requested.
      *
-     * This limits the 'limit' parameter in the find-closest API endpoint
-     * to prevent excessive resource usage.
+     * This limits the 'limit' parameter in the find-closest and search API
+     * endpoints to prevent excessive resource usage.
      */
     'max_match_limit' => 100,
 
@@ -78,4 +80,16 @@ return [
      * 'laratone' middleware alias is overridden with your own rate limiter).
      */
     'rate_limit' => '60,1',
+
+    /**
+     * REST API routes.
+     *
+     * Set 'enabled' to false to skip registering the routes entirely (for
+     * example, when you only use the Laratone facade). 'prefix' is the URL
+     * prefix for every endpoint.
+     */
+    'routes' => [
+        'enabled' => true,
+        'prefix'  => 'api/laratone',
+    ],
 ];

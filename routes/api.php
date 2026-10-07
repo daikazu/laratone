@@ -15,7 +15,9 @@ if (is_string($rateLimit) && $rateLimit !== '') {
 
 $middleware[] = 'laratone';
 
-Route::prefix('api/laratone')
+$prefix = config('laratone.routes.prefix', 'api/laratone');
+
+Route::prefix(is_string($prefix) ? $prefix : 'api/laratone')
     ->middleware($middleware)
     ->group(function (): void {
         Route::get('colorbooks', [LaratoneController::class, 'colorbooks'])
@@ -28,4 +30,11 @@ Route::prefix('api/laratone')
         Route::get('colorbook/{slug}/find-closest', [LaratoneController::class, 'findClosest'])
             ->where('slug', '[a-z0-9-]+')
             ->name('laratone.colorbook.find-closest');
+
+        Route::get('colorbook/{slug}/search', [LaratoneController::class, 'search'])
+            ->where('slug', '[a-z0-9-]+')
+            ->name('laratone.colorbook.search');
+
+        Route::get('find-closest', [LaratoneController::class, 'findClosestInAllBooks'])
+            ->name('laratone.find-closest');
     });

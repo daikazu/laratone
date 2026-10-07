@@ -16,6 +16,8 @@ use Illuminate\Support\Facades\Facade;
  * @method static bool deleteColor(\Daikazu\Laratone\Models\Color $color)
  * @method static \Illuminate\Database\Eloquent\Collection<int, \Daikazu\Laratone\Models\Color> getColorsFromBook(\Daikazu\Laratone\Models\ColorBook $colorBook)
  * @method static \Illuminate\Support\Collection<int, \Daikazu\Laratone\Models\Color> findClosestColors(\Daikazu\Laratone\Models\ColorBook $colorBook, string $targetHex, int $limit = 1, string $algorithm = 'lab')
+ * @method static \Illuminate\Database\Eloquent\Collection<int, \Daikazu\Laratone\Models\Color> searchColors(\Daikazu\Laratone\Models\ColorBook $colorBook, string $query, int $limit = 25)
+ * @method static \Illuminate\Support\Collection<int, \Daikazu\Laratone\Models\Color> findClosestColorsInAllBooks(string $targetHex, int $limit = 1, string $algorithm = 'lab')
  * @method static void clearCache()
  * @method static string cacheKey(string $suffix)
  * @method static int cacheTime()
