@@ -49,7 +49,7 @@ Preview automated refactoring suggestions:
 composer rector-dry
 ```
 
-All four should pass cleanly before you open a pull request - CI runs the test suite across PHP 8.3/8.4 and Laravel 12/13 on Linux and Windows.
+All four should pass cleanly before you open a pull request - CI runs the test suite across PHP 8.3/8.4/8.5 and Laravel 12/13 on Linux and Windows.
 
 ## Adding Color Books
 
