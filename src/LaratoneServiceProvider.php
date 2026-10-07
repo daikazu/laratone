@@ -4,34 +4,75 @@ declare(strict_types=1);
 
 namespace Daikazu\Laratone;
 
+use Carbon\Carbon;
 use Daikazu\Laratone\Commands\ClearCacheCommand;
 use Daikazu\Laratone\Commands\SeedCommand;
 use Daikazu\Laratone\Http\Middleware\LaratoneMiddleware;
 use Illuminate\Routing\Router;
-use Spatie\LaravelPackageTools\Package;
-use Spatie\LaravelPackageTools\PackageServiceProvider;
+use Illuminate\Support\Arr;
+use Illuminate\Support\ServiceProvider;
 
-final class LaratoneServiceProvider extends PackageServiceProvider
+final class LaratoneServiceProvider extends ServiceProvider
 {
-    public function configurePackage(Package $package): void
+    /**
+     * Migration stubs, in the order they must run.
+     *
+     * @var list<string>
+     */
+    private const array MIGRATIONS = [
+        'create_color_books_table',
+        'create_colors_table',
+        'add_oklch_column_to_colors_table',
+    ];
+
+    public function register(): void
     {
-        $package
-            ->name('laratone')
-            ->hasConfigFile()
-            ->hasMigrations(['create_color_books_table', 'create_colors_table', 'add_oklch_column_to_colors_table'])
-            ->hasCommands([
-                SeedCommand::class,
-                ClearCacheCommand::class,
-            ])
-            ->hasRoutes('api');
+        $this->mergeConfigFrom(__DIR__ . '/../config/laratone.php', 'laratone');
     }
 
-    public function packageBooted(): void
+    public function boot(): void
     {
-        $router = $this->app->make(Router::class);
+        $this->commands([
+            SeedCommand::class,
+            ClearCacheCommand::class,
+        ]);
+
+        $this->loadRoutesFrom(__DIR__ . '/../routes/api.php');
 
         // Register the laratone middleware alias with a default pass-through.
         // Users can override this in their service provider's boot method.
-        $router->aliasMiddleware('laratone', LaratoneMiddleware::class);
+        $this->app->make(Router::class)->aliasMiddleware('laratone', LaratoneMiddleware::class);
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__ . '/../config/laratone.php' => config_path('laratone.php'),
+            ], 'laratone-config');
+
+            $this->publishes($this->migrationsToPublish(), 'laratone-migrations');
+        }
+    }
+
+    /**
+     * Map each migration stub to its published path. Migrations already in
+     * the app keep their existing filename so re-publishing never duplicates
+     * them; new ones get sequential timestamps to preserve run order.
+     *
+     * @return array<string, string>
+     */
+    private function migrationsToPublish(): array
+    {
+        $existing = glob(database_path('migrations/*.php')) ?: [];
+        $now = Carbon::now();
+        $paths = [];
+
+        foreach (self::MIGRATIONS as $migration) {
+            $timestamp = $now->addSecond()->format('Y_m_d_His');
+            $published = Arr::first($existing, fn (string $file): bool => str_ends_with($file, "_{$migration}.php"));
+
+            $paths[__DIR__ . "/../database/migrations/{$migration}.php.stub"] = $published
+                ?? database_path("migrations/{$timestamp}_{$migration}.php");
+        }
+
+        return $paths;
     }
 }
