@@ -46,9 +46,12 @@ test('migrations are publishable with sequential timestamps', function (): void 
 
     expect($published)->toHaveCount(3);
 
+    // Normalize separators: database_path('migrations/...') mixes / and \ on Windows
+    $normalize = fn (string $path): string => str_replace('\\', '/', $path);
+
     foreach ($names as $i => $name) {
-        expect($published[$i])
-            ->toStartWith(database_path('migrations' . DIRECTORY_SEPARATOR))
+        expect($normalize($published[$i]))
+            ->toStartWith($normalize(database_path('migrations')) . '/')
             ->toMatch('/\d{4}_\d{2}_\d{2}_\d{6}_' . $name . '\.php$/');
     }
 
