@@ -9,6 +9,8 @@ use Composer\InstalledVersions;
 use Daikazu\Laratone\Commands\ClearCacheCommand;
 use Daikazu\Laratone\Commands\SeedCommand;
 use Daikazu\Laratone\Http\Middleware\LaratoneMiddleware;
+use Daikazu\Laratone\Services\ColorConverter;
+use Daikazu\Laratone\Services\ColorMatcher;
 use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Arr;
@@ -30,6 +32,10 @@ final class LaratoneServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/laratone.php', 'laratone');
+
+        $this->app->singleton(Laratone::class);
+        $this->app->singleton(ColorConverter::class);
+        $this->app->singleton(ColorMatcher::class);
     }
 
     public function boot(): void

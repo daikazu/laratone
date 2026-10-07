@@ -3,8 +3,12 @@
 declare(strict_types=1);
 
 use Composer\InstalledVersions;
+use Daikazu\Laratone\Facades\Laratone as LaratoneFacade;
 use Daikazu\Laratone\Http\Middleware\LaratoneMiddleware;
+use Daikazu\Laratone\Laratone;
 use Daikazu\Laratone\LaratoneServiceProvider;
+use Daikazu\Laratone\Services\ColorConverter;
+use Daikazu\Laratone\Services\ColorMatcher;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Route;
@@ -106,4 +110,12 @@ test('laratone section is added to the about command', function (): void {
             'rate_limit'           => '60,1',
         ],
     ]);
+});
+
+test('services are registered as singletons', function (string $service): void {
+    expect(app($service))->toBe(app($service));
+})->with([Laratone::class, ColorConverter::class, ColorMatcher::class]);
+
+test('facade resolves the shared laratone instance', function (): void {
+    expect(LaratoneFacade::getFacadeRoot())->toBe(app(Laratone::class));
 });
