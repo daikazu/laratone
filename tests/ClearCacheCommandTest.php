@@ -21,7 +21,7 @@ test('clear cache command clears laratone cache', function (): void {
     // Run the clear cache command
     $this->artisan('laratone:clear-cache')
         ->assertSuccessful()
-        ->expectsOutput('Laratone cache cleared successfully.');
+        ->expectsOutputToContain('Laratone cache cleared successfully.');
 
     // Fresh data is served, including for the deleted book's slug
     expect($laratone->colorBooks())->toHaveCount(0)
@@ -31,5 +31,5 @@ test('clear cache command clears laratone cache', function (): void {
 test('clear cache command succeeds even when cache is empty', function (): void {
     $this->artisan('laratone:clear-cache')
         ->assertSuccessful()
-        ->expectsOutput('Laratone cache cleared successfully.');
+        ->expectsOutputToContain('Laratone cache cleared successfully.');
 });

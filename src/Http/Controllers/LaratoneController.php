@@ -5,16 +5,15 @@ declare(strict_types=1);
 namespace Daikazu\Laratone\Http\Controllers;
 
 use Daikazu\Laratone\Http\Requests\ColorBookRequest;
+use Daikazu\Laratone\Http\Requests\ColorBooksRequest;
 use Daikazu\Laratone\Http\Requests\FindClosestColorsRequest;
 use Daikazu\Laratone\Laratone;
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Validation\Rule;
 
 final class LaratoneController extends Controller
 {
@@ -40,7 +39,7 @@ final class LaratoneController extends Controller
 
             $colorBook = Cache::remember(
                 $cacheKey,
-                $this->cacheTime(),
+                $this->laratone->cacheTime(),
                 fn (): ?array => $this->fetchColorBook($slug, $request)
             );
         }
@@ -59,19 +58,17 @@ final class LaratoneController extends Controller
      *
      * @return JsonResponse The list of color books
      */
-    public function colorbooks(Request $request): JsonResponse
+    public function colorbooks(ColorBooksRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'sort' => ['nullable', Rule::in(['asc', 'desc'])],
-        ]);
+        $sortDirection = $request->sortDirection();
 
-        $cacheKey = $this->laratone->cacheKey('http.colorbooks.' . md5((string) json_encode($validated)));
+        $cacheKey = $this->laratone->cacheKey('http.colorbooks.' . md5((string) json_encode($request->validated())));
 
-        $colorBooks = Cache::remember($cacheKey, $this->cacheTime(), function () use ($validated) {
+        $colorBooks = Cache::remember($cacheKey, $this->laratone->cacheTime(), function () use ($sortDirection) {
             $query = ColorBook::select('name', 'slug');
 
-            if (isset($validated['sort'])) {
-                $query->orderBy('name', $validated['sort']);
+            if ($sortDirection !== null) {
+                $query->orderBy('name', $sortDirection);
             }
 
             return $query->get();
@@ -134,7 +131,7 @@ final class LaratoneController extends Controller
         /** @var Collection<int, Color> $matches */
         $matches = Cache::remember(
             $cacheKey,
-            $this->cacheTime(),
+            $this->laratone->cacheTime(),
             fn (): Collection => $this->laratone->findClosestColors(
                 colorBook: $colorBook,
                 targetHex: $hex,
@@ -158,15 +155,5 @@ final class LaratoneController extends Controller
             'algorithm'  => $algorithm,
             'matches'    => $matchesArray,
         ]);
-    }
-
-    /**
-     * Get the configured cache time.
-     */
-    private function cacheTime(): int
-    {
-        $time = config('laratone.cache_time', 3600);
-
-        return is_numeric($time) ? (int) $time : 3600;
     }
 }

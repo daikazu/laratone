@@ -17,7 +17,7 @@ final class ClearCacheCommand extends Command
     {
         $laratone->clearCache();
 
-        $this->info('Laratone cache cleared successfully.');
+        $this->components->info('Laratone cache cleared successfully.');
 
         return self::SUCCESS;
     }

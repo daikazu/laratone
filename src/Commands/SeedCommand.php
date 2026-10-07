@@ -19,7 +19,7 @@ final class SeedCommand extends Command
 {
     protected $signature = 'laratone:seed {name?} {--F|file=}';
 
-    protected $description = 'Seed a Laratone Color Books';
+    protected $description = 'Seed Laratone color books';
 
     public function handle(): int
     {
@@ -47,11 +47,11 @@ final class SeedCommand extends Command
                 $this->seed($colorBookData);
             }
 
-            $this->info("<options=bold,reverse;fg=green> All Files Seeded Successfully </>\n");
+            $this->components->info('All color books seeded successfully.');
 
             return self::SUCCESS;
         } catch (Exception $e) {
-            $this->error('An error occurred while seeding: ' . $e->getMessage());
+            $this->components->error('An error occurred while seeding: ' . $e->getMessage());
 
             return self::FAILURE;
         }
@@ -72,7 +72,7 @@ final class SeedCommand extends Command
         $colorBooksDir = __DIR__ . '/../../colorbooks/';
         $allColorBooks = glob($colorBooksDir . '*.json') ?: [];
 
-        $this->info('Starting to seed all color books...');
+        $this->components->info('Seeding all color books.');
         $progressBar = $this->output->createProgressBar(count($allColorBooks));
         $progressBar->start();
 
@@ -153,7 +153,7 @@ final class SeedCommand extends Command
         $slug = Str::slug($colorBookData->name);
 
         if (ColorBook::where('slug', $slug)->exists()) {
-            $this->warn("Color Book '{$colorBookData->name}' already exists. Skipping...");
+            $this->components->warn("Color book '{$colorBookData->name}' already exists. Skipping.");
 
             return;
         }
@@ -183,8 +183,8 @@ final class SeedCommand extends Command
                     $progressBar->advance();
                 } catch (Exception $e) {
                     $progressBar->clear();
-                    $this->error("\nError in color book '{$colorBookData->name}' at color index {$index}:");
-                    $this->error($e->getMessage());
+                    $this->newLine();
+                    $this->components->error("Error in color book '{$colorBookData->name}' at color index {$index}: {$e->getMessage()}");
                     throw $e;
                 }
             }
@@ -194,10 +194,10 @@ final class SeedCommand extends Command
         });
 
         foreach ($skipped as $warning) {
-            $this->warn("Skipped color in '{$colorBookData->name}': {$warning}");
+            $this->components->warn("Skipped color in '{$colorBookData->name}': {$warning}");
         }
 
-        $this->info("Seeded: {$colorBookData->name}");
+        $this->components->twoColumnDetail($colorBookData->name, '<fg=green;options=bold>DONE</>');
     }
 
     private function createColorBook(string $name): ColorBook

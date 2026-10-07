@@ -201,9 +201,9 @@ final class Laratone
     }
 
     /**
-     * Get the configured cache time.
+     * Get the configured cache time in seconds.
      */
-    private function cacheTime(): int
+    public function cacheTime(): int
     {
         $time = config('laratone.cache_time', 3600);
 
