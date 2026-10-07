@@ -509,6 +509,20 @@ Or programmatically:
 Laratone::clearCache();
 ```
 
+## AI Assistance (Laravel Boost)
+
+Laratone ships [Laravel Boost](https://laravel.com/docs/boost) resources, so AI coding agents know how to use the package:
+
+- **Guideline** (always loaded): an overview of the facade, models, color values and matching algorithms.
+- **`laratone-development` skill**: creating color books and colors, seeding, configuration, and the REST API.
+- **`laratone-color-matching` skill**: find-closest within a book or across all books, choosing an algorithm, reading distances, ΔE2000 and name search.
+
+If your app uses Boost, they're picked up automatically when you run:
+
+```bash
+php artisan boost:install   # or boost:update in an existing Boost setup
+```
+
 ## Upgrading
 
 See [UPGRADE.md](UPGRADE.md) for upgrade instructions between major versions.

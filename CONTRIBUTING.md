@@ -14,7 +14,7 @@ Please read and understand this guide before creating an issue or pull request.
 
 - **One feature or fix per pull request.** Smaller, focused PRs are easier to review and merge.
 - **Add tests.** Bug fixes should include a regression test; new features need coverage for the happy path and edge cases.
-- **Document changes in behavior.** Update the README (and UPGRADE.md for breaking changes) when relevant.
+- **Document changes in behavior.** Update the README (and UPGRADE.md for breaking changes) when relevant, along with the Laravel Boost guideline and skills in `resources/boost/` when the change affects how the package is used.
 - **Follow the existing code style.** Strict types, final classes, and descriptive names throughout.
 
 ## Development Workflow
