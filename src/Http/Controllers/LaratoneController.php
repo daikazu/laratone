@@ -5,16 +5,16 @@ declare(strict_types=1);
 namespace Daikazu\Laratone\Http\Controllers;
 
 use Daikazu\Laratone\Http\Requests\ColorBookRequest;
+use Daikazu\Laratone\Http\Requests\ColorBooksRequest;
 use Daikazu\Laratone\Http\Requests\FindClosestColorsRequest;
+use Daikazu\Laratone\Http\Requests\SearchColorsRequest;
 use Daikazu\Laratone\Laratone;
 use Daikazu\Laratone\Models\Color;
 use Daikazu\Laratone\Models\ColorBook;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Validation\Rule;
 
 final class LaratoneController extends Controller
 {
@@ -40,7 +40,7 @@ final class LaratoneController extends Controller
 
             $colorBook = Cache::remember(
                 $cacheKey,
-                $this->cacheTime(),
+                $this->laratone->cacheTime(),
                 fn (): ?array => $this->fetchColorBook($slug, $request)
             );
         }
@@ -59,19 +59,17 @@ final class LaratoneController extends Controller
      *
      * @return JsonResponse The list of color books
      */
-    public function colorbooks(Request $request): JsonResponse
+    public function colorbooks(ColorBooksRequest $request): JsonResponse
     {
-        $validated = $request->validate([
-            'sort' => ['nullable', Rule::in(['asc', 'desc'])],
-        ]);
+        $sortDirection = $request->sortDirection();
 
-        $cacheKey = $this->laratone->cacheKey('http.colorbooks.' . md5((string) json_encode($validated)));
+        $cacheKey = $this->laratone->cacheKey('http.colorbooks.' . md5((string) json_encode($request->validated())));
 
-        $colorBooks = Cache::remember($cacheKey, $this->cacheTime(), function () use ($validated) {
+        $colorBooks = Cache::remember($cacheKey, $this->laratone->cacheTime(), function () use ($sortDirection) {
             $query = ColorBook::select('name', 'slug');
 
-            if (isset($validated['sort'])) {
-                $query->orderBy('name', $validated['sort']);
+            if ($sortDirection !== null) {
+                $query->orderBy('name', $sortDirection);
             }
 
             return $query->get();
@@ -134,7 +132,7 @@ final class LaratoneController extends Controller
         /** @var Collection<int, Color> $matches */
         $matches = Cache::remember(
             $cacheKey,
-            $this->cacheTime(),
+            $this->laratone->cacheTime(),
             fn (): Collection => $this->laratone->findClosestColors(
                 colorBook: $colorBook,
                 targetHex: $hex,
@@ -147,10 +145,7 @@ final class LaratoneController extends Controller
             'name'     => $color->name,
             'hex'      => $color->hex,
             'distance' => $color->getAttribute('distance'),
-            'rgb'      => $color->rgb,
-            'cmyk'     => $color->cmyk,
-            'lab'      => $color->lab,
-            'oklch'    => $color->oklch,
+            ...$this->colorValues($color),
         ])->values()->all();
 
         return response()->json([
@@ -161,12 +156,87 @@ final class LaratoneController extends Controller
     }
 
     /**
-     * Get the configured cache time.
+     * Search a color book's colors by name.
      */
-    private function cacheTime(): int
+    public function search(SearchColorsRequest $request, string $slug): JsonResponse
     {
-        $time = config('laratone.cache_time', 3600);
+        $colorBook = ColorBook::slug($slug)->first();
 
-        return is_numeric($time) ? (int) $time : 3600;
+        if (! $colorBook) {
+            return response()->json([
+                'message' => 'Color book not found',
+            ], 404);
+        }
+
+        $query = $request->searchQuery();
+        $limit = $request->limit();
+
+        $cacheKey = $this->laratone->cacheKey("http.colorbook.{$slug}.search." . md5("{$query}:{$limit}"));
+
+        /** @var Collection<int, Color> $colors */
+        $colors = Cache::remember(
+            $cacheKey,
+            $this->laratone->cacheTime(),
+            fn (): Collection => $this->laratone->searchColors($colorBook, $query, $limit)->toBase()
+        );
+
+        return response()->json([
+            'query'   => $query,
+            'matches' => $colors->map(fn (Color $color): array => [
+                'name' => $color->name,
+                'hex'  => $color->hex,
+                ...$this->colorValues($color),
+            ])->values()->all(),
+        ]);
+    }
+
+    /**
+     * Find the closest matching colors to a target color across all color books.
+     */
+    public function findClosestInAllBooks(FindClosestColorsRequest $request): JsonResponse
+    {
+        $hex = $request->hex();
+        $limit = $request->limit();
+        $algorithm = $request->algorithm();
+
+        $cacheKey = $this->laratone->cacheKey('http.closest.' . md5("{$hex}:{$limit}:{$algorithm}"));
+
+        /** @var Collection<int, Color> $matches */
+        $matches = Cache::remember(
+            $cacheKey,
+            $this->laratone->cacheTime(),
+            fn (): Collection => $this->laratone->findClosestColorsInAllBooks(
+                targetHex: $hex,
+                limit: $limit,
+                algorithm: $algorithm
+            )
+        );
+
+        return response()->json([
+            'target_hex' => $hex,
+            'algorithm'  => $algorithm,
+            'matches'    => $matches->map(fn (Color $color): array => [
+                'color_book' => $color->colorBook?->only('name', 'slug'),
+                'name'       => $color->name,
+                'hex'        => $color->hex,
+                'distance'   => $color->getAttribute('distance'),
+                ...$this->colorValues($color),
+            ])->values()->all(),
+        ]);
+    }
+
+    /**
+     * The color-space values included with every color in API responses.
+     *
+     * @return array<string, mixed>
+     */
+    private function colorValues(Color $color): array
+    {
+        return [
+            'rgb'   => $color->rgb,
+            'cmyk'  => $color->cmyk,
+            'lab'   => $color->lab,
+            'oklch' => $color->oklch,
+        ];
     }
 }

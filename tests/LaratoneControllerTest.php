@@ -94,6 +94,22 @@ test('can get color books with sort parameter', function (): void {
         ->assertJsonPath('1.name', 'B Book');
 });
 
+test('can get color books sorted descending', function (): void {
+    ColorBook::create(['name' => 'A Book', 'slug' => 'a-book']);
+    ColorBook::create(['name' => 'B Book', 'slug' => 'b-book']);
+
+    $this->getJson('/api/laratone/colorbooks?sort=desc')
+        ->assertStatus(200)
+        ->assertJsonPath('0.name', 'B Book')
+        ->assertJsonPath('1.name', 'A Book');
+});
+
+test('rejects an invalid color books sort direction', function (): void {
+    $this->getJson('/api/laratone/colorbooks?sort=sideways')
+        ->assertStatus(422)
+        ->assertJsonValidationErrors('sort');
+});
+
 test('caches color book responses', function (): void {
     $colorBook = ColorBook::create(['name' => 'Test book', 'slug' => 'test-book']);
     Color::create([

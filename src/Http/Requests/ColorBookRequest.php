@@ -50,11 +50,14 @@ final class ColorBookRequest extends FormRequest
         return is_numeric($limit) ? (int) $limit : null;
     }
 
+    /**
+     * @return 'asc'|'desc'|null
+     */
     public function sortDirection(): ?string
     {
         $sort = $this->validated('sort');
 
-        return is_string($sort) ? $sort : null;
+        return in_array($sort, ['asc', 'desc'], true) ? $sort : null;
     }
 
     public function isRandom(): bool

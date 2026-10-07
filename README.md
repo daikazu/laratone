@@ -1,7 +1,6 @@
 <a href="https://mikewall.dev">
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="art/header-dark.png">
-  <img alt="Logo for Laratone" src="art/header-light.png">
+  <img alt="Logo for Laratone" src="art/header-dark.png">
 </picture>
 </a>
 
@@ -20,11 +19,12 @@ Laratone is a comprehensive Laravel package for managing color libraries and swa
 
 - Multiple built-in color libraries (Solid Coated, GuangShun Thread, HC Twill)
 - **Auto-calculation of RGB, CMYK, LAB, and OKLCH from hex values**
-- **Find closest matching colors** using LAB or OKLCH distance algorithms
+- **Find closest matching colors** in one color book or across all of them, using CIE76 (LAB), CIEDE2000 or OKLCH distance
+- Search colors by name or code (e.g. `185 C`)
 - Configurable white point reference for LAB color calculations
 - Automatic color data caching with configurable TTL
 - Easy color book management and seeding
-- Flexible REST API with filtering, sorting, and pagination
+- Flexible REST API with filtering, sorting, and pagination (configurable prefix, or turn it off entirely)
 - Type-safe color value casting (LAB, RGB, CMYK, OKLCH)
 - PHP 8.3+ support with strict typing throughout
 
@@ -74,11 +74,23 @@ return [
     // Options: 'D50' (print), 'D55', 'D65' (daylight, default), 'D75'
     'white_point' => 'D65',
 
-    // Default algorithm for finding closest colors: 'lab' or 'oklch'
+    // Store calculated RGB/CMYK/LAB/OKLCH values when saving a color
+    'pre_calculate_colors' => false,
+
+    // Default algorithm for finding closest colors: 'lab', 'ciede2000' or 'oklch'
     'default_match_algorithm' => 'lab',
 
-    // Maximum number of colors that can be returned by find-closest
+    // Maximum number of colors that find-closest and search can return
     'max_match_limit' => 100,
+
+    // API rate limit as "maxAttempts,decayMinutes" (null to disable)
+    'rate_limit' => '60,1',
+
+    // REST API routes: turn them off, or change the URL prefix
+    'routes' => [
+        'enabled' => true,
+        'prefix'  => 'api/laratone',
+    ],
 ];
 ```
 
@@ -92,6 +104,24 @@ When RGB, CMYK, LAB, or OKLCH values are not provided, they are automatically ca
 | `D55` | Mid-morning daylight (~5500K) | Photography |
 | `D65` | Standard daylight (~6500K) | **Default**, web/screen |
 | `D75` | North sky daylight (~7500K) | Scientific applications |
+
+### Checking Your Setup
+
+Laratone adds a section to Laravel's `about` command showing the installed version and key settings:
+
+```bash
+php artisan about --only=laratone
+```
+
+```
+  Laratone ....................................................................
+  Match Algorithm ......................................................... lab
+  Pre-calculate Colors .................................................... OFF
+  Rate Limit ............................................................. 60,1
+  Table Prefix ...................................................... laratone_
+  Version ............................................................... 5.2.0
+  White Point ............................................................. D65
+```
 
 ## Usage
 
@@ -146,6 +176,18 @@ Example Color Book format:
 
 ## REST API
 
+All endpoints live under `/api/laratone` by default. Change the prefix, or turn the routes off entirely if you only use the facade:
+
+```php
+// config/laratone.php
+'routes' => [
+    'enabled' => true,          // false = don't register any Laratone routes
+    'prefix'  => 'colors/v1',   // endpoints become /colors/v1/colorbooks, ...
+],
+```
+
+Route names (`laratone.colorbooks`, `laratone.colorbook`, `laratone.colorbook.search`, `laratone.colorbook.find-closest`, `laratone.find-closest`) stay the same whatever the prefix, so `route()` calls keep working.
+
 ### Color Books
 
 List all available color books:
@@ -174,6 +216,43 @@ GET /api/laratone/colorbook/{slug}
 
 > **Note:** When using `random=true`, results are not cached to ensure different results on each request.
 
+### Search Colors
+
+Search a color book's colors by name or code. Matching is case-insensitive and finds the text anywhere in the name:
+
+```http
+GET /api/laratone/colorbook/{slug}/search
+```
+
+| Parameter | Required | Description | Default |
+|-----------|:--------:|-------------|:-------:|
+| q         | Yes      | Text to search for in color names (max 100 chars) | - |
+| limit     | No       | Maximum number of results (up to `max_match_limit`) | 25 |
+
+**Example Request:**
+```http
+GET /api/laratone/colorbook/color-book-plus-solid-coated/search?q=185
+```
+
+**Example Response:**
+```json
+{
+  "query": "185",
+  "matches": [
+    {
+      "name": "185 C",
+      "hex": "E4002B",
+      "rgb": {"r": 228, "g": 0, "b": 43},
+      "cmyk": {"c": 0, "m": 93, "y": 79, "k": 0},
+      "lab": {"l": 47.41, "a": 75.29, "b": 44.4},
+      "oklch": {"l": 0.5794, "c": 0.2343, "h": 23.93}
+    }
+  ]
+}
+```
+
+Results are ordered by name. This example is trimmed to one match; the full response also includes `2185 C` and `5185 C`.
+
 ### Find Closest Colors
 
 Find the closest matching colors in a color book to a target color:
@@ -186,11 +265,11 @@ GET /api/laratone/colorbook/{slug}/find-closest
 |-----------|:--------:|-------------|:-------:|
 | hex       | Yes      | Target color (6-char hex, with or without #) | - |
 | limit     | No       | Number of closest colors to return | 1 |
-| algorithm | No       | Distance algorithm: `lab` or `oklch` | lab |
+| algorithm | No       | Distance algorithm: `lab`, `ciede2000` or `oklch` | `default_match_algorithm` (lab) |
 
 **Example Request:**
 ```http
-GET /api/laratone/colorbook/color-book-plus-solid-coated/find-closest?hex=FF5500&limit=3&algorithm=lab
+GET /api/laratone/colorbook/color-book-plus-solid-coated/find-closest?hex=FF5500&limit=1&algorithm=lab
 ```
 
 **Example Response:**
@@ -200,13 +279,42 @@ GET /api/laratone/colorbook/color-book-plus-solid-coated/find-closest?hex=FF5500
   "algorithm": "lab",
   "matches": [
     {
-      "name": "Orange 021 C",
-      "hex": "FE5000",
-      "distance": 1.2345,
-      "rgb": {"r": 254, "g": 80, "b": 0},
-      "cmyk": {"c": 0, "m": 69, "y": 100, "k": 0},
-      "lab": {"l": 57.29, "a": 67.22, "b": 68.88},
-      "oklch": {"l": 0.6279, "c": 0.2577, "h": 29.23}
+      "name": "1655 C",
+      "hex": "FC4C02",
+      "distance": 3.2986,
+      "rgb": {"r": 252, "g": 76, "b": 2},
+      "cmyk": {"c": 0, "m": 73, "y": 98, "k": 0},
+      "lab": {"l": 57.92, "a": 64.35, "b": 68.37},
+      "oklch": {"l": 0.6618, "c": 0.2214, "h": 36.88}
+    }
+  ]
+}
+```
+
+### Find Closest Colors Across All Books
+
+Find the closest matches to a target color in every color book at once, for example to see which ink or thread library has the nearest match:
+
+```http
+GET /api/laratone/find-closest
+```
+
+Takes the same `hex`, `limit` and `algorithm` parameters as the single-book endpoint. Each match includes the color book it came from. Here, `?hex=FF5500&algorithm=ciede2000` finds the same Solid Coated color, scored with CIEDE2000:
+
+```json
+{
+  "target_hex": "FF5500",
+  "algorithm": "ciede2000",
+  "matches": [
+    {
+      "color_book": {"name": "Color Book Plus Solid Coated", "slug": "color-book-plus-solid-coated"},
+      "name": "1655 C",
+      "hex": "FC4C02",
+      "distance": 2.1238,
+      "rgb": {"r": 252, "g": 76, "b": 2},
+      "cmyk": {"c": 0, "m": 73, "y": 98, "k": 0},
+      "lab": {"l": 57.92, "a": 64.35, "b": 68.37},
+      "oklch": {"l": 0.6618, "c": 0.2214, "h": 36.88}
     }
   ]
 }
@@ -216,8 +324,11 @@ GET /api/laratone/colorbook/color-book-plus-solid-coated/find-closest?hex=FF5500
 
 | Algorithm | Description | Best For |
 |-----------|-------------|----------|
-| `lab` | CIE76 Delta E in LAB color space | General color matching, industry standard |
-| `oklch` | Perceptually uniform cylindrical distance | Modern applications, consistent perception |
+| `lab` | CIE76 Delta E: straight-line distance in LAB space | Fast general matching (the default) |
+| `ciede2000` | CIEDE2000 Delta E: corrects CIE76's errors with saturated colors and blues | Print, ink and textile matching, the industry standard |
+| `oklch` | Distance in the OKLab color space | Modern screen colors, consistent perception |
+
+Distances aren't comparable between algorithms. For CIE76 and CIEDE2000, a distance under about 1 is barely visible and under 2–3 is a close match. OKLCH distances are on a much smaller scale.
 
 ### Rate Limiting & Custom Middleware
 
@@ -319,13 +430,32 @@ $closest = Laratone::findClosestColors(
     colorBook: $colorBook,
     targetHex: 'FF5500',
     limit: 5,
-    algorithm: 'oklch'  // or 'lab' (default)
+    algorithm: 'ciede2000'  // 'lab' (default), 'ciede2000' or 'oklch'
 );
 
 // Each result includes a distance value
 foreach ($closest as $color) {
     echo "{$color->name}: {$color->distance}";
 }
+
+// Find the closest colors across every color book
+$closest = Laratone::findClosestColorsInAllBooks('FF5500', limit: 3, algorithm: 'ciede2000');
+
+foreach ($closest as $color) {
+    echo "{$color->name} ({$color->colorBook->name}): {$color->distance}";
+}
+
+// Search a color book by name or code (case-insensitive, partial match)
+$colors = Laratone::searchColors($colorBook, '185');        // up to 25 results
+$colors = Laratone::searchColors($colorBook, 'orange', 10); // custom limit
+
+// Calculate the CIEDE2000 difference between two LAB colors directly
+use Daikazu\Laratone\Services\ColorMatcher;
+
+$deltaE = app(ColorMatcher::class)->deltaE2000(
+    ['l' => 50.0, 'a' => 2.6772, 'b' => -79.7751],
+    ['l' => 50.0, 'a' => 0.0, 'b' => -82.7485],
+); // 2.0425
 
 // Clear cache manually
 Laratone::clearCache();
@@ -377,6 +507,20 @@ Or programmatically:
 
 ```php
 Laratone::clearCache();
+```
+
+## AI Assistance (Laravel Boost)
+
+Laratone ships [Laravel Boost](https://laravel.com/docs/boost) resources, so AI coding agents know how to use the package:
+
+- **Guideline** (always loaded): an overview of the facade, models, color values and matching algorithms.
+- **`laratone-development` skill**: creating color books and colors, seeding, configuration, and the REST API.
+- **`laratone-color-matching` skill**: find-closest within a book or across all books, choosing an algorithm, reading distances, ΔE2000 and name search.
+
+If your app uses Boost, they're picked up automatically when you run:
+
+```bash
+php artisan boost:install   # or boost:update in an existing Boost setup
 ```
 
 ## Upgrading

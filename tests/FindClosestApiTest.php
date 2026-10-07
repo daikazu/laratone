@@ -236,3 +236,14 @@ test('different parameters produce different cache keys', function (): void {
     $response2 = $this->getJson('/api/laratone/colorbook/test-book/find-closest?hex=FF0000&limit=2');
     $response2->assertJsonCount(2, 'matches');
 });
+
+test('can specify ciede2000 algorithm', function (): void {
+    $colorBook = ColorBook::create(['name' => 'Test Book', 'slug' => 'test-book']);
+    Color::create(['name' => 'Red', 'hex' => 'FF0000', 'color_book_id' => $colorBook->id]);
+    Color::create(['name' => 'Blue', 'hex' => '0000FF', 'color_book_id' => $colorBook->id]);
+
+    $this->getJson('/api/laratone/colorbook/test-book/find-closest?hex=FF5500&algorithm=ciede2000')
+        ->assertStatus(200)
+        ->assertJsonPath('algorithm', 'ciede2000')
+        ->assertJsonPath('matches.0.name', 'Red');
+});

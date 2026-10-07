@@ -181,7 +181,7 @@ final class Laratone
      * @param  ColorBook  $colorBook  The color book to search within
      * @param  string  $targetHex  The target color as a 6-character hex code
      * @param  int  $limit  Maximum number of matches to return (default: 1)
-     * @param  string  $algorithm  Distance algorithm: 'lab' or 'oklch' (default: 'lab')
+     * @param  string  $algorithm  Distance algorithm: 'lab', 'oklch' or 'ciede2000' (default: 'lab')
      * @return \Illuminate\Support\Collection<int, Color> Colors sorted by distance (closest first), with 'distance' attribute
      */
     public function findClosestColors(
@@ -201,9 +201,57 @@ final class Laratone
     }
 
     /**
-     * Get the configured cache time.
+     * Search a color book's colors by name (case-insensitive, partial match).
+     *
+     * @param  ColorBook  $colorBook  The color book to search within
+     * @param  string  $query  Text to look for anywhere in the color name
+     * @param  int  $limit  Maximum number of colors to return (default: 25)
+     * @return Collection<int, Color> Matching colors ordered by name
      */
-    private function cacheTime(): int
+    public function searchColors(ColorBook $colorBook, string $query, int $limit = 25): Collection
+    {
+        return $colorBook->colors()
+            ->whereLike('name', "%{$query}%")
+            ->orderBy('name')
+            ->limit($limit)
+            ->get();
+    }
+
+    /**
+     * Find the closest matching colors across every color book.
+     *
+     * Each returned color has its colorBook relation loaded, so you can tell
+     * which book a match came from.
+     *
+     * @param  string  $targetHex  The target color as a 6-character hex code
+     * @param  int  $limit  Maximum number of matches to return (default: 1)
+     * @param  string  $algorithm  Distance algorithm: 'lab', 'oklch' or 'ciede2000' (default: 'lab')
+     * @return \Illuminate\Support\Collection<int, Color> Colors sorted by distance (closest first), with 'distance' attribute
+     */
+    public function findClosestColorsInAllBooks(
+        string $targetHex,
+        int $limit = 1,
+        string $algorithm = ColorMatcher::ALGORITHM_LAB
+    ): \Illuminate\Support\Collection {
+        /** @var Collection<int, Color> $colors */
+        $colors = Cache::remember(
+            key: $this->cacheKey('colors.all'),
+            ttl: $this->cacheTime(),
+            callback: fn () => Color::with('colorBook')->get()
+        );
+
+        return app(ColorMatcher::class)->findClosest(
+            targetHex: $targetHex,
+            colors: $colors,
+            limit: $limit,
+            algorithm: $algorithm
+        );
+    }
+
+    /**
+     * Get the configured cache time in seconds.
+     */
+    public function cacheTime(): int
     {
         $time = config('laratone.cache_time', 3600);
 
