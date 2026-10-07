@@ -2,6 +2,54 @@
 
 All notable changes to `laratone` will be documented in this file.
 
+## v5.2.0 - 2026-10-07
+
+### Highlights
+
+- **CIEDE2000 (ΔE2000) color matching:** new `ciede2000` algorithm, the color-difference standard used in print and textile matching. Verified against all 34 Sharma et al. reference pairs
+- **Search colors by name or code:** find `185 C` without knowing its hex
+- **Find the closest color across all color books:** see which library has the nearest match
+- **PHP 8.5 support:** CI now covers PHP 8.3/8.4/8.5 × Laravel 12/13 on Linux and Windows
+- **One less dependency:** `spatie/laravel-package-tools` is no longer required
+
+### New features
+
+- `ciede2000` matching algorithm for find-closest (`?algorithm=ciede2000`, `Laratone::findClosestColors()`, or `default_match_algorithm`). `ColorMatcher::deltaE2000()` is public for comparing two LAB colors directly
+- `Laratone::searchColors($colorBook, '185')` and `GET /api/laratone/colorbook/{slug}/search?q=`: case-insensitive partial name search, limit capped by `max_match_limit`
+- `Laratone::findClosestColorsInAllBooks()` and `GET /api/laratone/find-closest?hex=`: each match includes the color book it came from
+- New `routes.enabled` / `routes.prefix` config options to turn off the API routes or change their URL prefix. Route names are unchanged
+- `php artisan about` now shows a Laratone section (version, table prefix, white point, match algorithm, pre-calculation, rate limit)
+- Laravel Boost guideline plus `laratone-development` and `laratone-color-matching` skills, picked up automatically by `boost:install` / `boost:update`
+
+### Improvements
+
+- `Laratone`, `ColorConverter` and `ColorMatcher` are registered as singletons
+- The `Laratone` facade has `@method` hints for IDE autocompletion
+- Artisan commands use Laravel's console components for output
+- Allows Pest v5 in dev dependencies
+- README: new sections for search, cross-book matching, route config and Boost. The configuration example now lists every option, and example API responses come from real data
+
+### Upgrading
+
+No changes are required. Every default matches v5.1, so matching results, routes and API responses stay the same unless you opt in to the new options.
+
+To use the new config options, add them to your published `config/laratone.php` (or re-publish it with `php artisan vendor:publish --tag=laratone-config --force`):
+
+```php
+'default_match_algorithm' => 'ciede2000', // optional: switch matching to ΔE2000
+
+'routes' => [
+    'enabled' => true,
+    'prefix'  => 'api/laratone',
+],
+
+```
+### What's Changed
+
+* v5.2: ΔE2000 matching, color search, cross-book matching, PHP 8.5, Pest 5 by @daikazu in https://github.com/daikazu/laratone/pull/11
+
+**Full Changelog**: https://github.com/daikazu/laratone/compare/v5.1.0...v5.2.0
+
 ## v5.1.0 - 2026-08-07
 
 ### Highlights
@@ -35,6 +83,7 @@ If your database was created on v4.x, publish and run the new migration to add t
 ```bash
 php artisan vendor:publish --tag=laratone-migrations
 php artisan migrate
+
 
 ```
 See [UPGRADE.md](https://github.com/daikazu/laratone/blob/master/UPGRADE.md) for the full guide.
