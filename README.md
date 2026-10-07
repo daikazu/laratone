@@ -92,6 +92,24 @@ When RGB, CMYK, LAB, or OKLCH values are not provided, they are automatically ca
 | `D65` | Standard daylight (~6500K) | **Default**, web/screen |
 | `D75` | North sky daylight (~7500K) | Scientific applications |
 
+### Checking Your Setup
+
+Laratone adds a section to Laravel's `about` command showing the installed version and key settings:
+
+```bash
+php artisan about --only=laratone
+```
+
+```
+  Laratone ....................................................................
+  Match Algorithm ......................................................... lab
+  Pre-calculate Colors .................................................... OFF
+  Rate Limit ............................................................. 60,1
+  Table Prefix ...................................................... laratone_
+  Version ............................................................... 5.2.0
+  White Point ............................................................. D65
+```
+
 ## Usage
 
 ### Seeding Color Books

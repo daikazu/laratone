@@ -5,9 +5,11 @@ declare(strict_types=1);
 namespace Daikazu\Laratone;
 
 use Carbon\Carbon;
+use Composer\InstalledVersions;
 use Daikazu\Laratone\Commands\ClearCacheCommand;
 use Daikazu\Laratone\Commands\SeedCommand;
 use Daikazu\Laratone\Http\Middleware\LaratoneMiddleware;
+use Illuminate\Foundation\Console\AboutCommand;
 use Illuminate\Routing\Router;
 use Illuminate\Support\Arr;
 use Illuminate\Support\ServiceProvider;
@@ -44,12 +46,29 @@ final class LaratoneServiceProvider extends ServiceProvider
         $this->app->make(Router::class)->aliasMiddleware('laratone', LaratoneMiddleware::class);
 
         if ($this->app->runningInConsole()) {
+            $this->addAboutInformation();
+
             $this->publishes([
                 __DIR__ . '/../config/laratone.php' => config_path('laratone.php'),
             ], 'laratone-config');
 
             $this->publishes($this->migrationsToPublish(), 'laratone-migrations');
         }
+    }
+
+    /**
+     * Add a Laratone section to `php artisan about`.
+     */
+    private function addAboutInformation(): void
+    {
+        AboutCommand::add('Laratone', fn (): array => [
+            'Version'              => InstalledVersions::getPrettyVersion('daikazu/laratone'),
+            'Table Prefix'         => config('laratone.table_prefix'),
+            'White Point'          => config('laratone.white_point'),
+            'Match Algorithm'      => config('laratone.default_match_algorithm'),
+            'Pre-calculate Colors' => config('laratone.pre_calculate_colors') ? 'ENABLED' : 'OFF',
+            'Rate Limit'           => config('laratone.rate_limit') ?: 'OFF',
+        ]);
     }
 
     /**

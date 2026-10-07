@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Composer\InstalledVersions;
 use Daikazu\Laratone\Http\Middleware\LaratoneMiddleware;
 use Daikazu\Laratone\LaratoneServiceProvider;
 use Illuminate\Support\Facades\Artisan;
@@ -90,4 +91,19 @@ test('artisan commands are registered', function (): void {
 test('laratone middleware alias is registered', function (): void {
     expect(app('router')->getMiddleware())
         ->toHaveKey('laratone', LaratoneMiddleware::class);
+});
+
+test('laratone section is added to the about command', function (): void {
+    Artisan::call('about', ['--only' => 'laratone', '--json' => true]);
+
+    expect(json_decode(Artisan::output(), true))->toBe([
+        'laratone' => [
+            'version'              => InstalledVersions::getPrettyVersion('daikazu/laratone'),
+            'table_prefix'         => 'laratone_',
+            'white_point'          => 'D65',
+            'match_algorithm'      => 'lab',
+            'pre-calculate_colors' => 'OFF',
+            'rate_limit'           => '60,1',
+        ],
+    ]);
 });
