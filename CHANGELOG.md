@@ -30,6 +30,7 @@ If you already seeded either book, updating the package doesn't change your data
 php artisan tinker --execute="Daikazu\Laratone\Models\ColorBook::whereIn('slug', ['color-book-metallic-coated', 'color-book-plus-metallic-coated'])->delete();"
 php artisan laratone:seed ColorBookMetallicCoated
 php artisan laratone:seed ColorBookPlusMetallicCoated
+php artisan laratone:clear-cache
 
 ```
 This gives the colors in those books new IDs, so update anything in your app that stores them.
