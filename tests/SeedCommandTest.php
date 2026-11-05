@@ -96,9 +96,10 @@ test('all shipped colorbooks contain valid hex values', function (): void {
         $data = json_decode((string) file_get_contents($file), false, 512, JSON_THROW_ON_ERROR);
 
         foreach ($data->data as $index => $color) {
-            $hex = strtoupper((string) preg_replace('/[^0-9A-F]/i', '', (string) $color->hex));
-
-            expect(strlen($hex))->toBe(6, "Invalid hex '{$color->hex}' at index {$index} in " . basename($file));
+            expect((string) $color->hex)->toMatch(
+                '/^#?[0-9A-F]{6}$/i',
+                "Invalid hex '{$color->hex}' at index {$index} in " . basename($file)
+            );
         }
     }
 });
