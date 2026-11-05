@@ -2,6 +2,38 @@
 
 All notable changes to `laratone` will be documented in this file.
 
+## v5.2.1 - 2026-11-05
+
+### Fixes
+
+Nine colors in two Metallic color books had hex values corrupted to scientific notation in the source data, such as `8.94E+87`. The seeder stripped the `.` and `+`, so these colors were stored with a valid but wrong hex. Each one is now restored from its `rgb` value.
+
+| Color book | Color | Stored before | Correct hex |
+| --- | --- | --- | --- |
+| Color Book Metallic Coated | 8124 C | `894E87` | `894E85` |
+| Color Book Metallic Coated | 8165 C | `523E83` | `523E81` |
+| Color Book Metallic Coated | 8285 C | `558E79` | `558E77` |
+| Color Book Metallic Coated | 8544 C | `643E56` | `643E54` |
+| Color Book Metallic Coated | 8741 C | `346E63` | `346E61` |
+| Color Book Metallic Coated | 8762 C | `355E70` | `355E68` |
+| Color Book Metallic Coated | 8960 C | `966E34` | `966E32` |
+| Color Book Plus Metallic Coated | 10264 C | `647E92` | `647E90` |
+| Color Book Plus Metallic Coated | 10385 C | `675E62` | `675E60` |
+
+The test for shipped color books now checks the raw hex value, so this kind of corruption fails the test suite.
+
+### Upgrading
+
+If you already seeded either book, updating the package doesn't change your data, because `laratone:seed` skips books that already exist. To get the fix, delete the affected books and seed them again:
+
+```bash
+php artisan tinker --execute="Daikazu\Laratone\Models\ColorBook::whereIn('slug', ['color-book-metallic-coated', 'color-book-plus-metallic-coated'])->delete();"
+php artisan laratone:seed ColorBookMetallicCoated
+php artisan laratone:seed ColorBookPlusMetallicCoated
+
+```
+This gives the colors in those books new IDs, so update anything in your app that stores them.
+
 ## v5.2.0 - 2026-10-07
 
 ### Highlights
@@ -43,6 +75,7 @@ To use the new config options, add them to your published `config/laratone.php` 
     'prefix'  => 'api/laratone',
 ],
 
+
 ```
 ### What's Changed
 
@@ -83,6 +116,7 @@ If your database was created on v4.x, publish and run the new migration to add t
 ```bash
 php artisan vendor:publish --tag=laratone-migrations
 php artisan migrate
+
 
 
 ```
